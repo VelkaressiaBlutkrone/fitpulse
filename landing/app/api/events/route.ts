@@ -1,21 +1,6 @@
-import { storeMetric } from "../../../db/landing-storage";
-import { parseMetricInput } from "../../lib/input";
+import { env } from "cloudflare:workers";
+import { handleEventsPost } from "../../lib/api-handlers";
 
-export async function POST(request: Request) {
-  let payload: unknown;
-  try {
-    payload = await request.json();
-  } catch {
-    return Response.json({ error: "invalid_json" }, { status: 400 });
-  }
-
-  const parsed = parseMetricInput(payload);
-  if (!parsed.ok) return Response.json({ error: parsed.error }, { status: 400 });
-
-  try {
-    await storeMetric(parsed.value);
-    return Response.json({ accepted: true }, { status: 202 });
-  } catch {
-    return Response.json({ error: "storage_unavailable" }, { status: 503 });
-  }
+export function POST(request: Request) {
+  return handleEventsPost(request, env.DB);
 }

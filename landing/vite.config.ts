@@ -1,7 +1,7 @@
 import vinext from "vinext";
 import { defineConfig } from "vite";
-import hostingConfig from "./.openai/hosting.json";
-import { sites } from "./build/sites-vite-plugin";
+import hostingConfig from "./.openai/hosting.json" with { type: "json" };
+import { sites } from "./build/sites-vite-plugin.ts";
 
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
   "00000000-0000-4000-8000-000000000000";
@@ -13,13 +13,21 @@ const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
 
 const localBindingConfig = {
   main: "./worker/index.ts",
+  compatibility_date: "2026-08-14",
   compatibility_flags: ["nodejs_compat"],
+  observability: {
+    enabled: true,
+    logs: { head_sampling_rate: 0.1 },
+    traces: { enabled: true, head_sampling_rate: 0.01 },
+  },
+  triggers: { crons: ["17 3 * * *"] },
   d1_databases: d1
     ? [
         {
           binding: d1,
           database_name: "site-creator-d1",
           database_id: SITE_CREATOR_PLACEHOLDER_DATABASE_ID,
+          migrations_dir: "dist/.openai/drizzle",
         },
       ]
     : [],

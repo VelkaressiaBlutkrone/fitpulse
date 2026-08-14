@@ -29,7 +29,7 @@ export default function Home() {
   return (
     <main>
       <header className="site-header">
-        <a className="brand" href="#top" aria-label="FitPulse 처음으로">
+        <a className="brand" href="#top">
           <span className="brand-mark" aria-hidden="true">FP</span>
           <span>FitPulse</span>
           <span className="preview-tag">PREVIEW</span>
@@ -133,7 +133,7 @@ export default function Home() {
           </p>
           <ul>
             <li>출시 알림 외 광고 메일 없음</li>
-            <li>언제든 등록 취소·삭제 요청 가능</li>
+            <li>등록 브라우저에서 즉시 취소·삭제 가능</li>
             <li>첫 설문에서 건강정보를 묻지 않음</li>
           </ul>
         </div>

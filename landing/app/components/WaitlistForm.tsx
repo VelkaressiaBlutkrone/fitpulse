@@ -1,15 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
-import { PAGE_VERSION, trackEvent } from "../lib/analytics";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import { normalizeChannelCode } from "../lib/input";
+import { landingViewEventId, PAGE_VERSION, trackEvent } from "../lib/analytics";
 
-type SubmitState = "idle" | "submitting" | "success" | "error";
+type Stage = "waitlist" | "survey" | "complete" | "deleted";
+type BusyAction = "waitlist" | "survey" | "delete" | null;
+type MessageKind = "status" | "error";
 
 function currentChannelCode() {
   if (typeof window === "undefined") return "direct";
-  const source = new URLSearchParams(window.location.search).get("utm_source") ?? "direct";
-  return /^[a-z0-9_-]{1,40}$/i.test(source) ? source.toLowerCase() : "other";
+  return normalizeChannelCode(
+    new URLSearchParams(window.location.search).get("utm_source") ?? "direct",
+  );
 }
 
 export function TrackedCta({
@@ -27,7 +31,10 @@ export function TrackedCta({
     <a
       className={className}
       href={href}
-      onClick={() => trackEvent("primary_cta_click", { pageVersion: PAGE_VERSION, position })}
+      onClick={() => trackEvent("primary_cta_click", {
+        page_version: PAGE_VERSION,
+        position,
+      })}
     >
       {children}
     </a>
@@ -35,79 +42,120 @@ export function TrackedCta({
 }
 
 export function WaitlistForm() {
-  const [state, setState] = useState<SubmitState>("idle");
+  const [stage, setStage] = useState<Stage>("waitlist");
+  const [busy, setBusy] = useState<BusyAction>(null);
   const [message, setMessage] = useState("");
-  const [waitlistId, setWaitlistId] = useState<string | null>(null);
-  const [surveyDone, setSurveyDone] = useState(false);
+  const [messageKind, setMessageKind] = useState<MessageKind>("status");
+  const [emailInvalid, setEmailInvalid] = useState(false);
+  const [consentInvalid, setConsentInvalid] = useState(false);
+  const [interviewOptIn, setInterviewOptIn] = useState(false);
   const [channelCode] = useState(currentChannelCode);
+  const messageRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
-    trackEvent("landing_view", { pageVersion: PAGE_VERSION, channelCode });
+    trackEvent(
+      "landing_view",
+      { page_version: PAGE_VERSION, channel_code: channelCode },
+      landingViewEventId(),
+    );
   }, [channelCode]);
+
+  function showError(nextMessage: string) {
+    setMessageKind("error");
+    setMessage(nextMessage);
+    requestAnimationFrame(() => messageRef.current?.focus());
+  }
+
+  function showStatus(nextMessage: string) {
+    setMessageKind("status");
+    setMessage(nextMessage);
+  }
 
   async function submitWaitlist(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setState("submitting");
-    setMessage("");
+    const formElement = event.currentTarget;
+    if (!formElement.checkValidity()) {
+      formElement.reportValidity();
+      return;
+    }
 
-    const form = new FormData(event.currentTarget);
+    setBusy("waitlist");
+    showStatus("");
+    const form = new FormData(formElement);
     const response = await fetch("/api/waitlist", {
       method: "POST",
       headers: { "content-type": "application/json" },
+      credentials: "same-origin",
       body: JSON.stringify({
         email: String(form.get("email") ?? ""),
         consent: form.get("consent") === "on",
-        consentVersion: "prevalidation-v1",
+        consentVersion: "prevalidation-v2",
         channelCode,
         company: String(form.get("company") ?? ""),
       }),
     }).catch(() => null);
+    setBusy(null);
 
     if (!response?.ok) {
-      setState("error");
-      setMessage("등록하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      showError("등록하지 못했습니다. 잠시 후 다시 시도해 주세요.");
       return;
     }
 
-    const result = (await response.json()) as { waitlistId?: string };
-    setWaitlistId(result.waitlistId ?? null);
-    setState("success");
-    setMessage("등록했습니다. 출시 일정이 정해지면 가장 먼저 알려드릴게요.");
-    trackEvent("waitlist_submit", { pageVersion: PAGE_VERSION, channelCode });
+    setStage("survey");
+    showStatus("신청을 접수했습니다. 확인된 주소만 출시 안내 대상으로 사용합니다.");
   }
 
   async function submitSurvey(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!waitlistId) return;
+    const formElement = event.currentTarget;
+    if (!formElement.checkValidity()) {
+      formElement.reportValidity();
+      return;
+    }
 
-    const form = new FormData(event.currentTarget);
+    setBusy("survey");
+    const form = new FormData(formElement);
     const response = await fetch("/api/survey", {
       method: "POST",
       headers: { "content-type": "application/json" },
+      credentials: "same-origin",
       body: JSON.stringify({
-        waitlistId,
         trainingFrequency: String(form.get("trainingFrequency") ?? ""),
         device: String(form.get("device") ?? ""),
         loggingMethod: String(form.get("loggingMethod") ?? ""),
         progressionMethod: String(form.get("progressionMethod") ?? ""),
-        interviewOptIn: form.get("interviewOptIn") === "on",
+        interviewOptIn,
       }),
     }).catch(() => null);
+    setBusy(null);
 
     if (!response?.ok) {
-      setMessage("설문을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      showError("설문을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.");
       return;
     }
 
-    setSurveyDone(true);
-    setMessage("설문까지 저장했습니다. 감사합니다.");
-    trackEvent("survey_complete", { pageVersion: PAGE_VERSION });
-    if (form.get("interviewOptIn") === "on") {
-      trackEvent("interview_opt_in", { pageVersion: PAGE_VERSION });
-    }
+    setStage("complete");
+    showStatus("설문까지 접수했습니다. 감사합니다.");
   }
 
-  if (state === "success" && waitlistId && !surveyDone) {
+  async function deleteRegistration() {
+    setBusy("delete");
+    const response = await fetch("/api/waitlist", {
+      method: "DELETE",
+      credentials: "same-origin",
+    }).catch(() => null);
+    setBusy(null);
+
+    if (!response?.ok) {
+      showError("삭제하지 못했습니다. 잠시 후 다시 시도하거나 개인정보 문의처로 연락해 주세요.");
+      return;
+    }
+
+    setStage("deleted");
+    showStatus("이 브라우저에서 접수한 이메일과 연결 설문을 삭제했습니다.");
+  }
+
+  if (stage === "survey") {
     return (
       <div className="form-card">
         <p className="form-step">STEP 2 · 선택</p>
@@ -149,23 +197,44 @@ export function WaitlistForm() {
             </select>
           </label>
           <label className="check-row optional-check">
-            <input name="interviewOptIn" type="checkbox" />
+            <input
+              name="interviewOptIn"
+              type="checkbox"
+              checked={interviewOptIn}
+              onChange={(event) => setInterviewOptIn(event.currentTarget.checked)}
+            />
             <span>30분 사용자 인터뷰 안내도 받고 싶습니다.</span>
           </label>
-          <button className="submit-button" type="submit">선택 설문 보내기</button>
+          <button className="submit-button" type="submit" disabled={busy !== null}>
+            {busy === "survey" ? "저장 중…" : "선택 설문 보내기"}
+          </button>
         </form>
-        <p className="form-message" role="status">{message}</p>
+        <p
+          className={`form-message${messageKind === "error" ? " form-error" : ""}`}
+          role={messageKind === "error" ? "alert" : "status"}
+          aria-live="polite"
+          ref={messageRef}
+          tabIndex={-1}
+        >{message}</p>
+        <button className="delete-button" type="button" onClick={deleteRegistration} disabled={busy !== null}>
+          등록 취소 및 데이터 삭제
+        </button>
       </div>
     );
   }
 
-  if (surveyDone) {
+  if (stage === "complete" || stage === "deleted") {
     return (
       <div className="form-card success-card" role="status">
         <span className="success-mark" aria-hidden="true">✓</span>
-        <p className="form-step">RESPONSE SAVED</p>
-        <h3>참여해 주셔서 감사합니다.</h3>
+        <p className="form-step">{stage === "deleted" ? "DATA DELETED" : "RESPONSE SAVED"}</p>
+        <h3>{stage === "deleted" ? "삭제를 처리했습니다." : "참여해 주셔서 감사합니다."}</h3>
         <p>{message}</p>
+        {stage === "complete" && (
+          <button className="delete-button" type="button" onClick={deleteRegistration} disabled={busy !== null}>
+            {busy === "delete" ? "삭제 중…" : "등록 취소 및 데이터 삭제"}
+          </button>
+        )}
       </div>
     );
   }
@@ -175,7 +244,7 @@ export function WaitlistForm() {
       <p className="form-step">STEP 1 · 필수</p>
       <h3>출시 알림 신청</h3>
       <p className="form-description">이메일 한 개만 받습니다. 결제 정보는 요구하지 않습니다.</p>
-      <form onSubmit={submitWaitlist} noValidate>
+      <form onSubmit={submitWaitlist}>
         <label className="field-label" htmlFor="waitlist-email">이메일</label>
         <input
           id="waitlist-email"
@@ -185,23 +254,44 @@ export function WaitlistForm() {
           autoComplete="email"
           placeholder="you@example.com"
           required
+          aria-invalid={emailInvalid || undefined}
+          aria-describedby="waitlist-email-help waitlist-form-message"
+          onInvalid={() => setEmailInvalid(true)}
+          onInput={() => setEmailInvalid(false)}
         />
+        <span className="field-help" id="waitlist-email-help">출시 안내를 받을 주소를 입력해 주세요.</span>
         <div className="honeypot" aria-hidden="true">
           <label htmlFor="company">회사명</label>
           <input id="company" name="company" tabIndex={-1} autoComplete="off" />
         </div>
-        <label className="check-row">
-          <input name="consent" type="checkbox" required />
-          <span>
+        <label className="check-row" htmlFor="waitlist-consent">
+          <input
+            id="waitlist-consent"
+            name="consent"
+            type="checkbox"
+            required
+            aria-invalid={consentInvalid || undefined}
+            aria-describedby="waitlist-consent-copy waitlist-form-message"
+            onInvalid={() => setConsentInvalid(true)}
+            onChange={() => setConsentInvalid(false)}
+          />
+          <span id="waitlist-consent-copy">
             <b>개인정보 수집·이용에 동의합니다.</b><br />
-            이메일 · 출시 알림 및 초기 테스트 안내 · 출시 후 6개월 또는 철회 시까지
+            이메일 · 출시 알림 및 초기 테스트 안내 · 확인 전 14일, 확인 후 최대 12개월
           </span>
         </label>
-        <button className="submit-button" type="submit" disabled={state === "submitting"}>
-          {state === "submitting" ? "등록 중…" : "출시 알림 신청하기"}
+        <button className="submit-button" type="submit" disabled={busy !== null}>
+          {busy === "waitlist" ? "등록 중…" : "출시 알림 신청하기"}
         </button>
       </form>
-      <p className="form-message" role="status" aria-live="polite">{message}</p>
+      <p
+        id="waitlist-form-message"
+        className={`form-message${messageKind === "error" ? " form-error" : ""}`}
+        role={messageKind === "error" ? "alert" : "status"}
+        aria-live="polite"
+        ref={messageRef}
+        tabIndex={-1}
+      >{message}</p>
       <Link className="privacy-link" href="/privacy">개인정보 안내 보기 →</Link>
     </div>
   );

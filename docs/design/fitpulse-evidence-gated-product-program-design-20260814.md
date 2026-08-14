@@ -716,18 +716,18 @@ CI/CD는 실제 소스 저장소와 빌드 구성이 확인된 뒤 다음 능력
 ### Repository sources
 
 - [루트 실행 규칙 `CLAUDE.md`](../../CLAUDE.md)
-- [Wiki README](../../wiki/README.md)
-- [제안서 v2.0](../../wiki/FitPulse_제안서_v2.0_20260813.md)
-- [계획서 v5.0](../../wiki/FitPulse_계획서_v5.0_20260813.md)
-- [요구사항 정의서 v2.0](../../wiki/FitPulse_요구사항정의서_v2.0_20260813.md)
-- [아키텍처 설계서 v2.0](../../wiki/FitPulse_아키텍처설계서_v2.0_20260813.md)
-- [상세설계서 v1.0](../../wiki/FitPulse_상세설계서_v1.0_20260813.md)
-- [상세설계서 v2.0](../../wiki/FitPulse_상세설계서_v2.0_20260813.md)
-- [ERD v2.0](../../wiki/FitPulse_ERD_v2.0_20260813.md)
-- [변경요청서 v2.0](../../wiki/FitPulse_변경요청서_v2.0_20260813.md)
-- [작업로그 v2.0](../../wiki/FitPulse_작업로그_v2.0_20260813.md)
-- [테스트케이스 v2.0](../../wiki/FitPulse_테스트케이스_v2.0_20260813.md)
-- [테스트보고서 v2.0](../../wiki/FitPulse_테스트보고서_v2.0_20260813.md)
+- [Wiki README](https://github.com/VelkaressiaBlutkrone/fitpulse/wiki/README)
+- [제안서 v2.0](https://github.com/VelkaressiaBlutkrone/fitpulse/wiki/FitPulse_제안서_v2.0_20260813)
+- [계획서 v5.0](https://github.com/VelkaressiaBlutkrone/fitpulse/wiki/FitPulse_계획서_v5.0_20260813)
+- [요구사항 정의서 v2.0](https://github.com/VelkaressiaBlutkrone/fitpulse/wiki/FitPulse_요구사항정의서_v2.0_20260813)
+- [아키텍처 설계서 v2.0](https://github.com/VelkaressiaBlutkrone/fitpulse/wiki/FitPulse_아키텍처설계서_v2.0_20260813)
+- [상세설계서 v1.0](https://github.com/VelkaressiaBlutkrone/fitpulse/wiki/FitPulse_상세설계서_v1.0_20260813)
+- [상세설계서 v2.0](https://github.com/VelkaressiaBlutkrone/fitpulse/wiki/FitPulse_상세설계서_v2.0_20260813)
+- [ERD v2.0](https://github.com/VelkaressiaBlutkrone/fitpulse/wiki/FitPulse_ERD_v2.0_20260813)
+- [변경요청서 v2.0](https://github.com/VelkaressiaBlutkrone/fitpulse/wiki/FitPulse_변경요청서_v2.0_20260813)
+- [작업로그 v2.0](https://github.com/VelkaressiaBlutkrone/fitpulse/wiki/FitPulse_작업로그_v2.0_20260813)
+- [테스트케이스 v2.0](https://github.com/VelkaressiaBlutkrone/fitpulse/wiki/FitPulse_테스트케이스_v2.0_20260813)
+- [테스트보고서 v2.0](https://github.com/VelkaressiaBlutkrone/fitpulse/wiki/FitPulse_테스트보고서_v2.0_20260813)
 
 ### External context
 

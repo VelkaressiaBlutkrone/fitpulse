@@ -1,12 +1,26 @@
+export const APPROVED_CHANNEL_CODES = [
+  "direct",
+  "other",
+  "docs",
+  "github",
+  "community",
+  "coach",
+  "gym",
+  "referral",
+  "paid_search",
+  "paid_social",
+] as const;
+
+export type ChannelCode = (typeof APPROVED_CHANNEL_CODES)[number];
+
 export type WaitlistInput = {
   email: string;
-  consentVersion: "prevalidation-v1";
-  channelCode: string;
+  consentVersion: "prevalidation-v2";
+  channelCode: ChannelCode;
   bot: boolean;
 };
 
 export type SurveyInput = {
-  waitlistId: string;
   trainingFrequency: "four_plus" | "two_three" | "one_less";
   device: "galaxy" | "iphone" | "other";
   loggingMethod: "app" | "notes" | "paper" | "none";
@@ -14,16 +28,12 @@ export type SurveyInput = {
   interviewOptIn: boolean;
 };
 
-export type MetricInput = {
-  name:
-    | "landing_view"
-    | "primary_cta_click"
-    | "waitlist_submit"
-    | "survey_complete"
-    | "interview_opt_in";
+export type ClientMetricInput = {
+  name: "landing_view" | "primary_cta_click";
+  eventId: string;
   properties: {
-    pageVersion: string;
-    channelCode?: string;
+    page_version: "landing-v1";
+    channel_code?: ChannelCode;
     position?: "header" | "hero";
   };
 };
@@ -38,9 +48,19 @@ function hasOnlyKeys(value: Record<string, unknown>, allowed: readonly string[])
   return Object.keys(value).every((key) => allowed.includes(key));
 }
 
-function channelCode(value: unknown) {
-  if (typeof value !== "string" || !/^[a-z0-9_-]{1,40}$/i.test(value)) return "direct";
-  return value.toLowerCase();
+export function normalizeChannelCode(value: unknown): ChannelCode {
+  if (typeof value !== "string") return "direct";
+  const normalized = value.trim().toLowerCase();
+  return APPROVED_CHANNEL_CODES.includes(normalized as ChannelCode)
+    ? (normalized as ChannelCode)
+    : "other";
+}
+
+function isUuid(value: unknown): value is string {
+  return (
+    typeof value === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+  );
 }
 
 export function parseWaitlistInput(payload: unknown): Result<WaitlistInput> {
@@ -56,7 +76,7 @@ export function parseWaitlistInput(payload: unknown): Result<WaitlistInput> {
 
   if (!validEmail) return { ok: false, error: "invalid_email" };
   if (payload.consent !== true) return { ok: false, error: "consent_required" };
-  if (payload.consentVersion !== "prevalidation-v1") {
+  if (payload.consentVersion !== "prevalidation-v2") {
     return { ok: false, error: "invalid_consent_version" };
   }
 
@@ -64,8 +84,8 @@ export function parseWaitlistInput(payload: unknown): Result<WaitlistInput> {
     ok: true,
     value: {
       email,
-      consentVersion: "prevalidation-v1",
-      channelCode: channelCode(payload.channelCode),
+      consentVersion: "prevalidation-v2",
+      channelCode: normalizeChannelCode(payload.channelCode),
       bot: typeof payload.company === "string" && payload.company.trim().length > 0,
     },
   };
@@ -78,13 +98,10 @@ const progressionMethods = ["program", "coach", "feeling", "repeat"] as const;
 
 export function parseSurveyInput(payload: unknown): Result<SurveyInput> {
   if (!isRecord(payload)) return { ok: false, error: "invalid_payload" };
-  if (!hasOnlyKeys(payload, ["waitlistId", "trainingFrequency", "device", "loggingMethod", "progressionMethod", "interviewOptIn"])) {
+  if (!hasOnlyKeys(payload, ["trainingFrequency", "device", "loggingMethod", "progressionMethod", "interviewOptIn"])) {
     return { ok: false, error: "unsupported_field" };
   }
 
-  if (typeof payload.waitlistId !== "string" || !/^[0-9a-f-]{36}$/i.test(payload.waitlistId)) {
-    return { ok: false, error: "invalid_waitlist_id" };
-  }
   if (!frequencies.includes(payload.trainingFrequency as SurveyInput["trainingFrequency"])) {
     return { ok: false, error: "invalid_training_frequency" };
   }
@@ -104,37 +121,36 @@ export function parseSurveyInput(payload: unknown): Result<SurveyInput> {
   return { ok: true, value: payload as SurveyInput };
 }
 
-const metricNames = [
-  "landing_view",
-  "primary_cta_click",
-  "waitlist_submit",
-  "survey_complete",
-  "interview_opt_in",
-] as const;
-
-export function parseMetricInput(payload: unknown): Result<MetricInput> {
-  if (!isRecord(payload) || !hasOnlyKeys(payload, ["name", "properties"])) {
+export function parseMetricInput(payload: unknown): Result<ClientMetricInput> {
+  if (!isRecord(payload) || !hasOnlyKeys(payload, ["name", "event_id", "properties"])) {
     return { ok: false, error: "invalid_payload" };
   }
-  if (!metricNames.includes(payload.name as MetricInput["name"])) {
+  if (payload.name !== "landing_view" && payload.name !== "primary_cta_click") {
     return { ok: false, error: "invalid_event" };
   }
+  if (!isUuid(payload.event_id)) return { ok: false, error: "invalid_event_id" };
   if (!isRecord(payload.properties)) return { ok: false, error: "invalid_properties" };
-  if (!hasOnlyKeys(payload.properties, ["pageVersion", "channelCode", "position"])) {
-    return { ok: false, error: "unsupported_property" };
-  }
-  if (payload.properties.pageVersion !== "landing-v1") {
+  if (payload.properties.page_version !== "landing-v1") {
     return { ok: false, error: "invalid_page_version" };
   }
 
-  const normalized: MetricInput["properties"] = { pageVersion: "landing-v1" };
-  if (payload.properties.channelCode !== undefined) {
-    if (channelCode(payload.properties.channelCode) !== payload.properties.channelCode) {
+  const allowedProperties = payload.name === "landing_view"
+    ? ["page_version", "channel_code"]
+    : ["page_version", "channel_code", "position"];
+  if (!hasOnlyKeys(payload.properties, allowedProperties)) {
+    return { ok: false, error: "unsupported_property" };
+  }
+
+  const normalized: ClientMetricInput["properties"] = { page_version: "landing-v1" };
+  if (payload.properties.channel_code !== undefined) {
+    const channel = normalizeChannelCode(payload.properties.channel_code);
+    if (channel !== payload.properties.channel_code) {
       return { ok: false, error: "invalid_channel_code" };
     }
-    normalized.channelCode = payload.properties.channelCode;
+    normalized.channel_code = channel;
   }
-  if (payload.properties.position !== undefined) {
+
+  if (payload.name === "primary_cta_click") {
     if (payload.properties.position !== "header" && payload.properties.position !== "hero") {
       return { ok: false, error: "invalid_position" };
     }
@@ -143,6 +159,10 @@ export function parseMetricInput(payload: unknown): Result<MetricInput> {
 
   return {
     ok: true,
-    value: { name: payload.name as MetricInput["name"], properties: normalized },
+    value: {
+      name: payload.name,
+      eventId: payload.event_id,
+      properties: normalized,
+    },
   };
 }

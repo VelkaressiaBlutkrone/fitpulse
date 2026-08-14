@@ -243,7 +243,7 @@ a:focus-visible {
 }
 
 .signal-row dt {
-  color: #777e8d;
+  color: #959dad;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.13em;
@@ -305,9 +305,16 @@ a:focus-visible {
   margin-bottom: 30px;
 }
 
-.mock-label,
+.mock-label {
+  color: #4f5561;
+  font-family: ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
 .reason-kicker {
-  color: #6c7079;
+  color: #b7bdc8;
   font-family: ui-monospace, monospace;
   font-size: 9px;
   font-weight: 800;
@@ -392,7 +399,7 @@ a:focus-visible {
 }
 
 .set-list span {
-  color: #858991;
+  color: #555b66;
   font-family: ui-monospace, monospace;
   font-size: 9px;
 }
@@ -472,9 +479,16 @@ a:focus-visible {
 }
 
 .problem-number,
-.flow-index,
 .form-step {
-  color: var(--acid);
+  color: #9b2e13;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+}
+
+.flow-index {
+  color: #ff876a;
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
   font-size: 11px;
   font-weight: 850;
@@ -615,7 +629,21 @@ select {
 
 input[type="email"] {
   font-size: 16px;
-  margin: 8px 0 18px;
+  margin: 8px 0 4px;
+}
+
+.field-help {
+  color: #555962;
+  display: block;
+  font-size: 11px;
+  line-height: 1.5;
+  margin-bottom: 18px;
+}
+
+input[aria-invalid="true"],
+select[aria-invalid="true"] {
+  border-color: #a51e12;
+  box-shadow: 0 0 0 1px #a51e12;
 }
 
 .check-row {
@@ -652,6 +680,40 @@ input[type="email"] {
   font-size: 12px;
   min-height: 19px;
   margin: 13px 0 0;
+}
+
+.form-message:focus {
+  outline: none;
+}
+
+.form-error {
+  color: #8f190f;
+  font-weight: 750;
+}
+
+.delete-button {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  color: #4d515a;
+  cursor: pointer;
+  font-size: 11px;
+  margin-top: 18px;
+  padding: 3px 0;
+}
+
+.delete-button:hover:not(:disabled) {
+  color: #8f190f;
+}
+
+.delete-button:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 4px;
+}
+
+.delete-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
 }
 
 .privacy-link {
@@ -786,7 +848,7 @@ footer a {
 }
 
 .privacy-page h1 small {
-  color: var(--acid);
+  color: #9b2e13;
   font-size: 0.42em;
 }
 
