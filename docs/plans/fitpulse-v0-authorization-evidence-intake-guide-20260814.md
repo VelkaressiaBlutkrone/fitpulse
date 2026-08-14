@@ -16,6 +16,8 @@ Payment or deposit collection authorized: **NO**
 
 현재 저장소에서는 B-00~B-05의 실제 값을 확인할 수 없다. 따라서 모든 필드는 `UNVERIFIED`이며, [V0 측정 계획](./MEASURE-V0-20260814-001.md)은 문서 `DRAFT`, 실행 `BLOCKED` 상태다.
 
+2026-08-14 사용자 입력으로 계약·예산 책임 모델이 **개인 프로젝트**라는 점은 확인했다. 이는 분류 입력일 뿐, 계약·결제 계정과 연구 예산을 실제로 통제한다는 서명 기록을 대신하지 않는다. B-00은 계속 `UNVERIFIED`다.
+
 관련 문서:
 
 - [프로젝트 문서 색인](../README.md)
@@ -85,6 +87,8 @@ Payment or deposit collection authorized: **NO**
 ~~~yaml
 b00:
   status: UNVERIFIED
+  responsibility_model: INDIVIDUAL_PROJECT
+  responsibility_model_confirmed_at: 2026-08-14
   authorization_record_id: NOT_PROVIDED
   authority_basis_verified: false
   approved_scope_codes: []
