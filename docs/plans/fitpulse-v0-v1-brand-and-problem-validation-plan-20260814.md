@@ -28,6 +28,8 @@ V1은 다음 다섯 가지 판정 조건을 모두 충족할 때만 `GO`다.
 
 지원 문서는 다음과 같다.
 
+- [B-00~B-05 승인·증거 인수 방법](./fitpulse-v0-authorization-evidence-intake-guide-20260814.md): 실제 승인 원문을 Git 밖에 두고 불투명 ID만 제출·검증하는 절차
+- [V0 측정 계획](./MEASURE-V0-20260814-001.md): 현재 차단 상태, V0 검색·삭제 리허설·판정 계약
 - [V1 중립 연구 모집 페이지 계획](./fitpulse-v1-research-recruitment-page-plan-20260814.md): 해결책·가격을 노출하지 않고 파일럿과 본 조사 참가자를 모집하는 절차
 - [V2 랜딩 수요 실험 계획](./fitpulse-v2-landing-demand-experiment-plan-20260814.md): V1 `GO` 뒤 선택된 한 웨지의 메시지·오퍼를 시험하는 차단된 초안. 현재 실행 권한 없음
 
@@ -146,9 +148,10 @@ B-00은 자기 선언만으로 만들지 않는다. 개인 프로젝트면 계�
 | 산출물 | 예정 경로 | 허용 내용 |
 |---|---|---|
 | 이 실행 계획 | `docs/plans/fitpulse-v0-v1-brand-and-problem-validation-plan-20260814.md` | 절차·판정·작업·차단 필드 |
+| B-00~B-05 승인·증거 인수 방법 | `docs/plans/fitpulse-v0-authorization-evidence-intake-guide-20260814.md` | 제한 저장소 원문과 Git-safe 승인 ID의 분리·검증 절차 |
 | V1 중립 모집 페이지 계획 | `docs/plans/fitpulse-v1-research-recruitment-page-plan-20260814.md` | 해결책 비노출 카피, 모집 모드, 데이터·계측 경계, 수용 시험 |
 | V2 랜딩 수요 실험 초안 | `docs/plans/fitpulse-v2-landing-demand-experiment-plan-20260814.md` | V1 GO 후 사용할 메시지·오퍼 실험 계약. V1 증거와 실행 승인을 대신하지 않음 |
-| V0 측정 계획 | `docs/plans/MEASURE-V0-YYYYMMDD-001.md` | 검색 범위·후보 평가 기준·책임자 ID |
+| V0 측정 계획 | `docs/plans/MEASURE-V0-20260814-001.md` | 차단 상태, 검색 범위·후보 평가·삭제 리허설·책임자 ID 계약 |
 | V1 측정 계획 | `docs/plans/MEASURE-V1-YYYYMMDD-001.md` | 모집·질문·계수·오퍼 버전·분모·제외 규칙 |
 | 브랜드 증거 요약 | `docs/discovery/EVD-YYYY-NNN-brand-candidate-<slug>.md` | 질의·URL·확인일·스크린샷의 비민감 증거 ID·위험 판정 |
 | V1 비식별 집계 요약 | `docs/discovery/EVD-YYYY-NNN-problem-observation-summary.md` | 집계값, 5명 미만 소수 셀 억제값, 원자료 배치의 불투명 ID, 철회·무효화 상태. 참가자별 행 금지 |
@@ -630,6 +633,8 @@ V1 `GO`는 위 조건을 모두 충족해야 한다. `GO`가 허용하는 다음
 ## 21. 다음 의사결정 패킷
 
 실행을 시작하려면 사용자가 또는 지정 책임자가 다음 실제 값만 제공하면 된다.
+
+제공 방법과 Git에 넣지 않을 값은 [B-00~B-05 승인·증거 인수 방법](./fitpulse-v0-authorization-evidence-intake-guide-20260814.md)을 따르며, 현재 상태는 [V0 측정 계획](./MEASURE-V0-20260814-001.md)에 기록한다.
 
 1. B-00 연구·예산·계약 위임권자
 2. B-01 실제 역할 배정
