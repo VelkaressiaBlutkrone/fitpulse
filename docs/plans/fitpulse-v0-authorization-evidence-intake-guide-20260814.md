@@ -14,7 +14,7 @@ Payment or deposit collection authorized: **NO**
 
 이 가이드를 끝내면 개인사업자 본인이 제한 저장소에 B-00~B-05 승인·자체 검토 원문을 보관하고, Git에는 개인·계약·결제 정보를 노출하지 않는 불투명 기록 ID만 남길 수 있다.
 
-현재 저장소에서는 B-00 서명 기록의 존재 주장만 확인됐고 원문은 확인할 수 없다. B-00은 `SUBMITTED`, B-01~B-05는 `UNVERIFIED`이며, [V0 측정 계획](./MEASURE-V0-20260814-001.md)은 문서 `DRAFT`, 실행 `BLOCKED` 상태다.
+현재 저장소에서는 B-00 대체 기록과 B-01 통합 역할 기록의 불투명 참조 ID가 제출됐지만 원문은 확인할 수 없다. B-00·B-01은 `SUBMITTED`, B-02~B-05는 `UNVERIFIED`이며, [V0 측정 계획](./MEASURE-V0-20260814-001.md)은 문서 `DRAFT`, 실행 `BLOCKED` 상태다.
 
 2026-08-14 사용자 입력으로 계약·예산 책임 모델이 **개인사업자 1인 자체 검토**(`SOLE_PROPRIETOR_SELF_REVIEW`)라는 점과 다음 B-00 입력을 확인했다.
 
@@ -24,7 +24,7 @@ Payment or deposit collection authorized: **NO**
 - 종료 조건: `GATE_V0_DECISION_ISSUED`
 - 범위: 내부 조사, 상표 전문가 계약, 연구 저장소 계약, 참가자 모집·사례비, 환불 가능한 예약금 수집
 
-사용자는 2026-08-14에 서명 원문을 Git 외부에 저장하고 불투명 ID `AUTH-V0-B00-20260814-001`을 제출했다고 확인했다. 따라서 B-00은 `SUBMITTED`다. 이후 책임 모델이 개인사업자로 정정됐지만 원문을 읽을 수 없어 기존 서명 기록이 이 정정을 포함하는지는 확인되지 않았다. 개인사업자 본인이 원문과 Git 투영값을 대조하고 필요한 정정 서명을 남기기 전에는 `OWNER_VERIFIED`가 아니며, B-02~B-04가 충족되기 전 참가자 모집·사례비·예약금 실행은 금지된다.
+사용자는 2026-08-14에 B-00 대체 기록 참조 `AUTH-V0-B00-20260814-002`와 B-01 역할 기록 참조 `ROLE-V0-B01-20260814-001`로 진행한다고 제출했고, B-00 대체 기록이 기존 `AUTH-V0-B00-20260814-001`을 대체한다고 지정했다. 따라서 두 기록은 `SUBMITTED`다. 다만 실제 서명 시각과 원문·Git 투영값의 소유자 대조 완료 여부는 제출되지 않았다. 이 값이 확인되기 전에는 `OWNER_VERIFIED`가 아니며, B-02~B-04가 충족되기 전 참가자 모집·사례비·예약금 실행은 금지된다.
 
 [개인사업자 1인 자체 검토 거버넌스 결정](../decisions/ADR-20260814-001-sole-proprietor-self-review-governance.md)에 따라 V0~V2에서는 외부 역할 인력을 필수로 두지 않는다. 모든 결과는 `OWNER_SELF_REVIEW`이며 독립 검증 완료를 주장하지 않는다.
 
@@ -99,7 +99,7 @@ Payment or deposit collection authorized: **NO**
 ~~~yaml
 b00:
   status: SUBMITTED
-  input_state: SIGNED_RECORD_SUBMITTED_NEEDS_MODEL_RECONCILIATION
+  input_state: CORRECTED_RECORD_REFERENCE_SUBMITTED_AWAITING_OWNER_VERIFICATION
   responsibility_model: SOLE_PROPRIETOR_SELF_REVIEW
   responsibility_model_confirmed_at: 2026-08-14
   authority_control_attested: true
@@ -112,13 +112,16 @@ b00:
     - RESEARCH_STORE_CONTRACT
     - PARTICIPANT_RECRUITMENT_AND_INCENTIVE
     - REFUNDABLE_DEPOSIT_COLLECTION
-  authorization_record_id: AUTH-V0-B00-20260814-001
+  authorization_record_id: AUTH-V0-B00-20260814-002
+  supersedes_authorization_record_id: AUTH-V0-B00-20260814-001
   signed_record_presence_attested: true
   signed_record_content_verified: false
-  signed_record_model_reconciled: false
+  signed_record_model_reconciled: null
   assurance_level: OWNER_SELF_REVIEW
   independent_assurance_claimed: false
   signed_record_submitted_at: 2026-08-14
+  signed_at: null
+  owner_verification_attested: false
   authority_basis_verified: false
   approved_scope_codes: []
   budget_cap_krw: null
@@ -192,11 +195,16 @@ V0~V2에는 개인사업자 본인 한 명인 `R-OWNER`를 배정한다. `R-SPON
 
 ~~~yaml
 b01:
-  status: UNVERIFIED
-  role_assignment_record_id: NOT_PROVIDED
+  status: SUBMITTED
+  role_assignment_record_id: ROLE-V0-B01-20260814-001
+  signed_record_presence_attested: true
+  signed_record_content_verified: false
+  signed_record_submitted_at: 2026-08-14
+  signed_at: null
+  owner_verification_attested: false
   governance_model: SOLE_PROPRIETOR_SELF_REVIEW
   assignments:
-    R-OWNER: OWNER_ATTESTED_AWAITING_SIGNED_RECORD
+    R-OWNER: SIGNED_RECORD_REFERENCE_SUBMITTED_AWAITING_OWNER_VERIFICATION
     R-SPONSOR: R-OWNER
     R-PRODUCT: R-OWNER
     R-EVIDENCE: R-OWNER
@@ -449,18 +457,19 @@ b05:
 실제 담당자는 제한 저장소에 원문을 만든 뒤 아래 값만 프로젝트 문서 담당자에게 전달한다.
 
 ~~~yaml
-intake_version: B00-B05-20260814-001
+intake_version: B00-B05-20260814-002
 jurisdiction: KR
 private_record_system_id: NOT_PROVIDED
-b00_authorization_record_id: AUTH-V0-B00-20260814-001
-b01_role_assignment_record_id: NOT_PROVIDED
+b00_authorization_record_id: AUTH-V0-B00-20260814-002
+b00_supersedes_authorization_record_id: AUTH-V0-B00-20260814-001
+b01_role_assignment_record_id: ROLE-V0-B01-20260814-001
 b02_data_lifecycle_record_id: NOT_PROVIDED
 b03_recruitment_record_id: NOT_PROVIDED
 b04_offer_review_record_id: NOT_PROVIDED
 b05_trademark_route_record_id: NOT_PROVIDED
 statuses:
   B-00: SUBMITTED
-  B-01: UNVERIFIED
+  B-01: SUBMITTED
   B-02: UNVERIFIED
   B-03: UNVERIFIED
   B-04: UNVERIFIED
@@ -494,6 +503,20 @@ scope_codes: []
 ### 통합 역할 서명 기록을 아직 만들지 못한 경우
 
 B-01을 `UNVERIFIED`로 유지한다. 대화의 역할 선택이나 AI를 서명 기록으로 대체하지 않는다. V0 문서 검토 외 작업은 시작하지 않는다.
+
+### 기록 ID는 제출했지만 서명 시각·원문 대조 확인이 없는 경우
+
+B-00 또는 B-01을 `SUBMITTED`로만 기록한다. 실제 ISO 8601 서명 시각, 적용 범위, 종료 조건과 원문·Git 투영값의 소유자 대조 완료 확인이 제출되기 전에는 `OWNER_VERIFIED`로 올리거나 `INTERNAL_V0`를 시작하지 않는다.
+
+대조를 마친 뒤에는 원문이나 서명을 공개하지 않고 다음 Git-safe 값만 제출한다.
+
+~~~text
+B00_OWNER_VERIFIED: true
+B00_SIGNED_AT: [실제 ISO 8601 시각]
+B01_OWNER_VERIFIED: true
+B01_SIGNED_AT: [실제 ISO 8601 시각]
+INDEPENDENT_ASSURANCE_CLAIMED: false
+~~~
 
 ### 연구 저장소 공급자가 처리 국가나 삭제 방식을 공개하지 않는 경우
 
