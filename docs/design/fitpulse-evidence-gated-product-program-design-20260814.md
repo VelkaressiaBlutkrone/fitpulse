@@ -8,7 +8,7 @@ Approved by: user decision `D12-A` on 2026-08-14
 Mode: Startup — Intrapreneurship
 Source snapshot: GitHub Wiki 문서군 2026-08-13 버전, 저장소 관찰 2026-08-14
 Decision status: Office Hours에서 Approach C와 프로그램을 승인함. `Reviewer Concerns` 9건은 면제되지 않으며 해당 게이트의 차단 조건으로 유지
-Superseded scope: 웨지 선택, 상품 가설과 검증 순서는 [Android 자동 진행 코치 상품 검증 개정안](./fitpulse-android-progression-coach-validation-design-20260814.md)이 우선함. 이 문서의 증거 라벨, `GO/LOOP/STOP`, 개인정보·안전·규제·테스트 우선 통제는 계속 유효함
+Superseded scope: 웨지 선택, 상품 가설과 검증 순서는 [Android 자동 진행 코치 상품 검증 개정안](./fitpulse-android-progression-coach-validation-design-20260814.md)이 우선함. V0~V2 인적 독립성과 최소 인원 규칙은 [개인사업자 1인 자체 검토 거버넌스 결정](../decisions/ADR-20260814-001-sole-proprietor-self-review-governance.md)이 대체함. 이 문서의 증거 라벨, `GO/LOOP/STOP`, 개인정보·안전·규제·테스트 우선 통제는 계속 유효함
 
 ## Proposed Direction
 
@@ -474,6 +474,8 @@ Wiki의 W1~W14와 A1~A4는 이 게이트를 통과한 기능에 한해 다시 �
 | 운영 책임자 | 지원, 신고·제재, 장애·사고 대응과 종료 처리 | 책임자 미배정 상태로 파일럿·커뮤니티를 열지 않음 |
 
 ### Role independence and minimum staffing
+
+아래는 기본 다인 조직 모델이다. FitPulse V0~V2에는 ADR-20260814-001을 적용해 개인사업자 본인 `R-OWNER` 한 명이 역할 기능을 순서대로 수행한다. 해당 범위의 결과는 `OWNER_SELF_REVIEW`이며 독립 검증 완료를 주장하지 않는다. G3 이후와 법령·계약·스토어가 별도 자격이나 검토를 요구하는 항목은 이 예외로 면제되지 않는다.
 
 - 제품 책임자와 G2A 최종 사용성 승인자는 분리한다. 사용자 대표와 검증 책임자가 공동 승인하며 제품 책임자는 증거를 제출한다.
 - 증거 소유자와 검증 책임자는 같은 증거 묶음의 유일한 수집자·검증자를 겸할 수 없다. G4 구현자도 자신이 만든 변경의 유일한 시험 실행자나 최종 승인자가 될 수 없다.

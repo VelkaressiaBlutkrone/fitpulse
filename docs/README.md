@@ -11,9 +11,10 @@ Updated: 2026-08-14
 - 제품 구현: **승인되지 않음**
 - 외부 참가자 모집·연락: **승인되지 않음**
 - 결제·예약금 수집: **승인되지 않음**
-- 계약·예산 책임 모델: **개인 프로젝트**. 본인 통제·500,000원 상한·전체 B-00 범위·`GATE_V0_DECISION_ISSUED` 종료 조건 입력 완료
+- 계약·예산 책임 모델: **개인사업자 1인 자체 검토** (`SOLE_PROPRIETOR_SELF_REVIEW`). 본인 통제·500,000원 상한·전체 B-00 범위·`GATE_V0_DECISION_ISSUED` 종료 조건 입력 완료
+- 검증 보증 수준: **창업자 자체 검토**. 외부 역할 인력은 필수 배정하지 않으며 독립 검증 완료를 주장하지 않음
 - 현재 허용 작업: B-00~B-05 실제 승인 근거 준비, 내부 문서 검토, 합성 자료를 사용한 저장·삭제 리허설 설계
-- 현재 차단 원인: 제출된 B-00 서명 기록의 독립 검증 ID, 역할 배정, 승인 연구 저장소, 모집 조건, 약정 오퍼, 상표 전문가 검토 경로가 확인되지 않음
+- 현재 차단 원인: 제출된 B-00 서명 기록과 개인사업자 책임 모델의 일치 여부, B-01 통합 역할 서명 기록, 승인 연구 저장소, 모집 조건, 약정 오퍼, 상표 전문가 검토 경로가 확인되지 않음
 
 ## 문서 권위
 
@@ -31,6 +32,7 @@ Updated: 2026-08-14
 
 | 문서 | 종류 | 용도 | 현재 상태 |
 |---|---|---|---|
+| [개인사업자 1인 자체 검토 거버넌스 결정](./decisions/ADR-20260814-001-sole-proprietor-self-review-governance.md) | Decision | V0~V2 역할 통합, 보증 수준과 주장 제한 | 승인됨; 실행 권한은 부여하지 않음 |
 | [증거 게이트형 단계별 제품 프로그램](./design/fitpulse-evidence-gated-product-program-design-20260814.md) | Explanation / Reference | 전체 게이트, 문서 권위, 역할·데이터 경계 | 설계 기준 |
 | [Android 자동 진행 코치 상품 검증 개정안](./design/fitpulse-android-progression-coach-validation-design-20260814.md) | Explanation | 대상 사용자와 단계별 상품 검증 방향 | 설계 기준 |
 | [V0·V1 브랜드 및 문제 검증 실행 계획](./plans/fitpulse-v0-v1-brand-and-problem-validation-plan-20260814.md) | Reference / Explanation | V0·V1 판정 규칙과 전체 실행 순서 | 담당자 입력 대기 |
@@ -47,7 +49,7 @@ Updated: 2026-08-14
 | `docs/plans/` | 측정·실행 계획, 운영 방법 | 실제 연락처·서명·결제 식별자 |
 | `docs/discovery/` | 비식별 증거 요약과 불투명 증거 ID | 참가자별 원문·5명 미만 소수 셀 |
 | `docs/decisions/` | 승인된 게이트 결정과 ADR | 승인되지 않은 결론 위장 |
-| `docs/verification/` | 재현 가능한 검사와 독립 검증 결과 | 원자료 사본 |
+| `docs/verification/` | 재현 가능한 검사와 자체 검산 결과; 적용 시 별도 외부 검증 결과 | 원자료 사본 |
 | `docs/reference/` | 안정적인 용어·감사 기준 | 현재 결정과 충돌하는 무표시 역사 내용 |
 
 ## Git에 저장하지 않는 정보
@@ -62,7 +64,7 @@ Git에는 승인된 제한 저장소의 불투명한 기록 ID, 상태, 확인�
 
 ## 다음 작업
 
-1. [승인·증거 인수 방법](./plans/fitpulse-v0-authorization-evidence-intake-guide-20260814.md)에 따라 B-00부터 순서대로 제한 저장소에 기록한다.
+1. [승인·증거 인수 방법](./plans/fitpulse-v0-authorization-evidence-intake-guide-20260814.md)에 따라 B-00 책임 모델을 개인사업자로 정정·대조하고 B-01 통합 역할 기록을 서명한다.
 2. Git에는 개인 정보가 없는 승인 기록 ID와 상태만 [V0 측정 계획](./plans/MEASURE-V0-20260814-001.md)에 반영한다.
 3. `MEASURE-V0`가 승인되기 전에는 외부 연락, 브랜드 구매, 결제 링크 생성 또는 참가자 자료 수집을 하지 않는다.
 4. V0 실행 뒤 별도의 `docs/decisions/GATE-V0-<date>-<sequence>.md`로 `GO/LOOP/STOP`을 판정한다.

@@ -12,11 +12,11 @@ Payment or deposit collection authorized: **NO**
 
 ## 결과
 
-이 가이드를 끝내면 실제 담당자와 검토자가 제한 저장소에 B-00~B-05 승인 원문을 보관하고, Git에는 개인·계약·결제 정보를 노출하지 않는 불투명 승인 기록 ID만 남길 수 있다.
+이 가이드를 끝내면 개인사업자 본인이 제한 저장소에 B-00~B-05 승인·자체 검토 원문을 보관하고, Git에는 개인·계약·결제 정보를 노출하지 않는 불투명 기록 ID만 남길 수 있다.
 
-현재 저장소에서는 B-00~B-05의 실제 값을 확인할 수 없다. 따라서 모든 필드는 `UNVERIFIED`이며, [V0 측정 계획](./MEASURE-V0-20260814-001.md)은 문서 `DRAFT`, 실행 `BLOCKED` 상태다.
+현재 저장소에서는 B-00 서명 기록의 존재 주장만 확인됐고 원문은 확인할 수 없다. B-00은 `SUBMITTED`, B-01~B-05는 `UNVERIFIED`이며, [V0 측정 계획](./MEASURE-V0-20260814-001.md)은 문서 `DRAFT`, 실행 `BLOCKED` 상태다.
 
-2026-08-14 사용자 입력으로 계약·예산 책임 모델이 **개인 프로젝트**라는 점과 다음 B-00 입력을 확인했다.
+2026-08-14 사용자 입력으로 계약·예산 책임 모델이 **개인사업자 1인 자체 검토**(`SOLE_PROPRIETOR_SELF_REVIEW`)라는 점과 다음 B-00 입력을 확인했다.
 
 - 연구 착수·예산·외부 계약·결제 계정 직접 통제: `true`
 - V0 총예산 상한: 500,000원
@@ -24,7 +24,9 @@ Payment or deposit collection authorized: **NO**
 - 종료 조건: `GATE_V0_DECISION_ISSUED`
 - 범위: 내부 조사, 상표 전문가 계약, 연구 저장소 계약, 참가자 모집·사례비, 환불 가능한 예약금 수집
 
-사용자는 2026-08-14에 서명 원문을 Git 외부에 저장하고 불투명 ID `AUTH-V0-B00-20260814-001`을 제출했다고 확인했다. 따라서 B-00은 `SUBMITTED`다. 원문 내용과 Git 투영값을 독립 검토자가 아직 대조하지 않았으므로 `VERIFIED`는 아니며, B-02~B-04가 충족되기 전 참가자 모집·사례비·예약금 실행은 금지된다.
+사용자는 2026-08-14에 서명 원문을 Git 외부에 저장하고 불투명 ID `AUTH-V0-B00-20260814-001`을 제출했다고 확인했다. 따라서 B-00은 `SUBMITTED`다. 이후 책임 모델이 개인사업자로 정정됐지만 원문을 읽을 수 없어 기존 서명 기록이 이 정정을 포함하는지는 확인되지 않았다. 개인사업자 본인이 원문과 Git 투영값을 대조하고 필요한 정정 서명을 남기기 전에는 `OWNER_VERIFIED`가 아니며, B-02~B-04가 충족되기 전 참가자 모집·사례비·예약금 실행은 금지된다.
+
+[개인사업자 1인 자체 검토 거버넌스 결정](../decisions/ADR-20260814-001-sole-proprietor-self-review-governance.md)에 따라 V0~V2에서는 외부 역할 인력을 필수로 두지 않는다. 모든 결과는 `OWNER_SELF_REVIEW`이며 독립 검증 완료를 주장하지 않는다.
 
 관련 문서:
 
@@ -57,7 +59,7 @@ Payment or deposit collection authorized: **NO**
 ### Git에 둘 수 있는 정보
 
 - `AUTH-*`, `ROLE-*`, `DATA-*`, `CHANNEL-*`, `OFFER-*`, `TM-*` 형식의 불투명 기록 ID
-- `UNVERIFIED`, `SUBMITTED`, `VERIFIED`, `REJECTED`, `EXPIRED` 상태
+- `UNVERIFIED`, `SUBMITTED`, `OWNER_VERIFIED`, `VERIFIED`, `REJECTED`, `EXPIRED` 상태
 - 검토 완료 시각, 적용 범위, 유효기간과 비민감 비용 상한
 - 역할 코드, 금지 겸임 검사 결과와 공개 가능한 판정
 - 합성 자료 리허설의 통과·실패, 후보별 비민감 검색 요약
@@ -70,11 +72,12 @@ Payment or deposit collection authorized: **NO**
 |---|---|---|
 | `UNVERIFIED` | 원문 또는 실제 담당자를 확인하지 못함 | 외부 행동 금지 |
 | `SUBMITTED` | 제한 저장소에 원문이 있지만 필수 검토가 끝나지 않음 | 검토만 허용 |
-| `VERIFIED` | 지정 승인자가 원문·권한·범위를 확인하고 서명함 | 해당 범위 안의 다음 작업만 허용 |
+| `OWNER_VERIFIED` | 개인사업자 본인이 원문·권한·범위를 자체 대조하고 서명했으며 자체 검토 한계를 명시함 | 해당 범위 안의 다음 작업만 허용 |
+| `VERIFIED` | 적용 시 별도 검토자가 원문·권한·범위를 확인하고 서명함 | 해당 범위 안의 다음 작업만 허용 |
 | `REJECTED` | 권한·범위·통제가 요구사항을 충족하지 않음 | 대체 경로가 없으면 `STOP` |
 | `EXPIRED` | 유효기간 또는 재검증 트리거가 지남 | 새 승인 전 사용 금지 |
 
-자기 선언이나 Git 커밋은 `VERIFIED` 근거가 아니다. 각 기록에는 승인자, 승인 시각, 적용 범위, 유효기간 또는 무효화 트리거가 있어야 한다.
+대화의 자기 선언이나 Git 커밋만으로 `OWNER_VERIFIED` 또는 `VERIFIED`가 되지 않는다. 각 기록에는 승인자, 승인 시각, 적용 범위, 유효기간 또는 무효화 트리거가 있어야 한다. `OWNER_VERIFIED`는 독립 보증이 아니라 서명된 자체 대조가 끝났다는 상태다.
 
 ## 4. B-00 위임권한 기록하기
 
@@ -82,7 +85,8 @@ Payment or deposit collection authorized: **NO**
 
 | 필드 | 확인 내용 |
 |---|---|
-| 책임 주체 | 개인 프로젝트인지 조직 프로젝트인지와 계약 책임 주체 |
+| 책임 주체 | 개인사업자 또는 조직 프로젝트인지와 계약 책임 주체 |
+| 개인사업자 근거 | 사업자등록 상태와 대표자·계약 주체의 일치 여부. 식별번호 원문은 제한 저장소에만 보관 |
 | 권한 보유자 | 연구 착수, 예산 사용, 외부 계약을 승인할 실제 사람 |
 | 권한 근거 | 본인 책임 확인 또는 조직 위임·직무·결재 기록 |
 | 허용 범위 | 내부 조사, 외부 전문가 의뢰, 참가자 모집, 사례비, 예약금 중 허용 항목 |
@@ -95,8 +99,8 @@ Payment or deposit collection authorized: **NO**
 ~~~yaml
 b00:
   status: SUBMITTED
-  input_state: SIGNED_RECORD_SUBMITTED_AWAITING_VERIFICATION
-  responsibility_model: INDIVIDUAL_PROJECT
+  input_state: SIGNED_RECORD_SUBMITTED_NEEDS_MODEL_RECONCILIATION
+  responsibility_model: SOLE_PROPRIETOR_SELF_REVIEW
   responsibility_model_confirmed_at: 2026-08-14
   authority_control_attested: true
   owner_attested_budget_cap_krw: 500000
@@ -111,6 +115,9 @@ b00:
   authorization_record_id: AUTH-V0-B00-20260814-001
   signed_record_presence_attested: true
   signed_record_content_verified: false
+  signed_record_model_reconciled: false
+  assurance_level: OWNER_SELF_REVIEW
+  independent_assurance_claimed: false
   signed_record_submitted_at: 2026-08-14
   authority_basis_verified: false
   approved_scope_codes: []
@@ -122,16 +129,20 @@ b00:
 
 범위 코드는 B-00에서 비용·계약 권한을 어디까지 위임하려는지 기록한다. 코드가 목록에 있다는 사실만으로 해당 행동이 실행 가능해지지 않는다. `PARTICIPANT_RECRUITMENT_AND_INCENTIVE`는 B-02·B-03, `REFUNDABLE_DEPOSIT_COLLECTION`은 B-02·B-04와 V0 `GO`가 추가로 필요하다.
 
-### 개인 프로젝트 서명 원문 템플릿
+### 개인사업자 서명 원문 템플릿
 
 아래 템플릿의 완료본은 Git이나 이 대화에 붙이지 않고 제한 저장소에 둔다.
 
 ~~~text
 기록 ID: [제한 저장소의 불투명 ID]
-책임 모델: 개인 프로젝트
+책임 모델: 개인사업자 1인 자체 검토
+사업자·대표자 일치 근거: [제한 저장소에만 기록]
 
 본인은 FitPulse V0에 대해 연구 착수, 연구 예산,
 외부 계약 및 결제 계정을 직접 통제합니다.
+
+본인은 V0~V2의 제품·증거·사용자 관점·개인정보·검산·재무 기능을
+한 명이 자체 검토하는 구조로 수행하며, 이를 독립 검증으로 주장하지 않습니다.
 
 총예산 상한: 500,000원
 발효일: 2026-08-14
@@ -152,7 +163,7 @@ b00:
 서명 시각: [ISO 8601]
 ~~~
 
-`authorization_record_id`만으로는 충분하지 않다. R-PRIVACY 또는 지정 검토자가 제한 저장소에서 원문과 Git 투영값이 같은지 확인해야 한다.
+`authorization_record_id`만으로는 충분하지 않다. `R-OWNER`가 개인정보 기능 모자를 쓰고 제한 저장소에서 원문과 Git 투영값이 같은지 자체 대조해야 한다. 대조 기록에는 `assurance_level: OWNER_SELF_REVIEW`와 `independent_assurance_claimed: false`를 포함한다.
 
 ### 통과 조건
 
@@ -161,26 +172,21 @@ b00:
 - 허용하지 않은 외부 행동은 명시적으로 금지된다.
 - 승인 ID와 서명이 존재한다.
 
-## 5. B-01 역할과 독립성 기록하기
+## 5. B-01 1인 역할과 자체 검토 기록하기
 
 ### 최소 배정
 
-V0에는 최소 네 석이 필요하다.
+V0~V2에는 개인사업자 본인 한 명인 `R-OWNER`를 배정한다. `R-SPONSOR`, `R-PRODUCT`, `R-EVIDENCE`, `R-USER`, `R-PRIVACY`, `R-VERIFY`, `R-FINANCE`는 모두 `R-OWNER`가 수행할 책임 기능이다. 별도 외부 역할 인력은 게이트 통과의 필수 조건이 아니다.
 
-1. `R-SPONSOR`
-2. `R-PRODUCT/R-EVIDENCE`
-3. `R-USER`
-4. `R-PRIVACY`
-
-V1 본 조사 전에는 별도 `R-VERIFY`를 추가한다. `R-VERIFY`는 본 조사 30명의 주 인터뷰어를 겸할 수 없고, `R-USER`는 실제 대상 사용자를 대표해야 한다.
+`R-USER`는 사용자 관점 체크리스트일 뿐 독립 사용자 대표가 아니다. 실제 사용자 문제의 근거는 참가자 원자료에서만 얻는다. `R-VERIFY`는 동결된 입력과 규칙을 다시 실행하는 자체 검산이며 독립 검증이 아니다.
 
 ### 제한 저장소 필수 항목
 
-- 역할별 실제 담당자, 연락 경로, 수락 서명과 배정 기간
-- 역할 수행 근거와 필요한 전문성
-- 겸임 역할, 이해충돌과 완화 조치
-- 부재·철회 때 대체 담당자 지정 방식
-- 거부권과 최종 승인 범위
+- 개인사업자 본인의 역할 수락 서명과 배정 기간
+- 일곱 기능별 체크리스트, 수행 시점과 기록 위치
+- 자기 이해충돌, 독립 보증 부재와 완화 절차
+- 본인 부재·수행 불가 때 전 작업을 중단하는 조건
+- 최종 승인 범위와 개인정보·법률 불확실성 발생 시 중단 조건
 
 ### Git 투영 예시
 
@@ -188,27 +194,63 @@ V1 본 조사 전에는 별도 `R-VERIFY`를 추가한다. `R-VERIFY`는 본 조
 b01:
   status: UNVERIFIED
   role_assignment_record_id: NOT_PROVIDED
+  governance_model: SOLE_PROPRIETOR_SELF_REVIEW
   assignments:
-    R-SPONSOR: NOT_ASSIGNED
-    R-PRODUCT: NOT_ASSIGNED
-    R-EVIDENCE: NOT_ASSIGNED
-    R-USER: NOT_ASSIGNED
-    R-PRIVACY: NOT_ASSIGNED
-    R-VERIFY: NOT_ASSIGNED
-    R-FINANCE: NOT_ASSIGNED
-  minimum_four_seats_met: false
-  prohibited_dual_roles_found: null
+    R-OWNER: OWNER_ATTESTED_AWAITING_SIGNED_RECORD
+    R-SPONSOR: R-OWNER
+    R-PRODUCT: R-OWNER
+    R-EVIDENCE: R-OWNER
+    R-USER: R-OWNER
+    R-PRIVACY: R-OWNER
+    R-VERIFY: R-OWNER
+    R-FINANCE: R-OWNER
+  required_owner_count: 1
+  owner_function_mapping_complete: true
+  assurance_level: OWNER_SELF_REVIEW
+  independent_assurance_claimed: false
   verified_at: null
 ~~~
 
 실제 이름 대신 역할 배정 레코드 안에서만 해석되는 담당자 ID를 쓴다.
 
+### 통합 역할 서명 원문 템플릿
+
+완료본은 Git이나 이 대화에 붙이지 않고 제한 저장소에 둔다.
+
+~~~text
+기록 ID: [ROLE-V0-B01-YYYYMMDD-NNN]
+거버넌스 모델: SOLE_PROPRIETOR_SELF_REVIEW
+실제 담당자: 개인사업자 본인 1명 [식별정보는 제한 저장소에만 기록]
+
+본인은 FitPulse V0~V2에 대해 다음 기능을 모두 직접 수행합니다.
+- R-SPONSOR
+- R-PRODUCT
+- R-EVIDENCE
+- R-USER
+- R-PRIVACY
+- R-VERIFY
+- R-FINANCE
+
+본인은 이 구조에 인적 독립성이 없음을 이해하며 다음을 준수합니다.
+- 결과를 OWNER_SELF_REVIEW로 표시합니다.
+- independent_assurance_claimed를 false로 기록합니다.
+- 사용자 관점 자체 점검을 실제 사용자 대표 승인으로 표현하지 않습니다.
+- 실행과 자체 검산의 시각·입력·출력 해시를 분리 기록합니다.
+- 불일치·모호한 증거를 유리하게 고치지 않고 disputed 또는 INCONCLUSIVE로 처리합니다.
+- 법률·규제·세무·상표·안전상 별도 자격이나 검토가 필요한 경우 이 역할 통합으로 면제하지 않습니다.
+
+적용 시작: [ISO 8601]
+종료 조건: GATE_V0_DECISION_ISSUED 또는 본인의 역할 수행 중단 중 빠른 시점
+서명: [제한 저장소에만 기록]
+서명 시각: [ISO 8601]
+~~~
+
 ### 통과 조건
 
-- 최소 네 석과 각 책임 수락이 확인된다.
-- `R-USER`의 실제 사용자 대표성이 기록된다.
-- 같은 증거의 유일한 수집자와 유일한 검증자가 한 사람이 아니다.
-- V1 본 조사 전 독립 검증자 확보 조건이 일정에 포함된다.
+- 개인사업자 본인 한 명이 일곱 기능을 수락한 서명 기록이 확인된다.
+- `R-USER` 결과가 독립 사용자 대표 의견이 아니라 자체 관점 검토임을 표시한다.
+- 수집·분류·집계·검산의 단계별 입력·출력 해시와 실행 시각을 기록한다.
+- 모든 게이트 결과에 `OWNER_SELF_REVIEW`와 `independent_assurance_claimed: false`가 포함된다.
 
 ## 6. B-02 연구 저장소와 삭제 경로 기록하기
 
@@ -227,7 +269,7 @@ b01:
 | 사고 | 침해·오발송·권한 오류의 연락·격리·통지·종료 절차 |
 | 재위탁 | 실제 재위탁자, 처리 국가, 확인일과 변경 통지 경로 |
 
-공급자 문서에서 처리 국가·재위탁·삭제 동작을 확인할 수 없으면 `VERIFIED`로 표시하지 않는다.
+공급자 문서에서 처리 국가·재위탁·삭제 동작을 확인할 수 없으면 `OWNER_VERIFIED` 또는 `VERIFIED`로 표시하지 않는다.
 
 ### 합성 자료 삭제 리허설
 
@@ -239,7 +281,7 @@ b01:
 4. 비허용 역할의 읽기·내보내기·복구 시도가 거부되는지 확인한다.
 5. 철회 요청을 모사해 운영본, 복제본, 파생표와 매핑 키를 삭제한다.
 6. 백업에서 복구를 모사한 뒤 철회 목록이 먼저 재적용되는지 확인한다.
-7. 삭제 실행자와 별도 검증자가 잔존 여부를 확인한다.
+7. `R-OWNER`가 삭제 실행 단계와 자체 검산 단계를 분리해 잔존 여부를 확인하고 두 단계의 시각·결과 해시를 남긴다.
 8. Git에는 테스트 ID, 시각, 결과와 불투명 삭제 증명 ID만 남긴다.
 
 ### Git 투영 필드
@@ -351,7 +393,7 @@ b04:
 ### 통과 조건
 
 - 오퍼 필수 항목에 `REQUIRED`, `TBD`, 빈값이 없다.
-- 결제와 환불을 실제 담당자가 테스트하고 별도 검증자가 확인한다.
+- `R-OWNER`가 결제·환불 실행과 자체 검산을 별도 단계로 수행하고 두 결과를 대조한다.
 - 환불 관찰창이 환불 가능 기간보다 짧지 않다.
 - 오퍼 승인 전 실제 결제 링크가 생성·노출되지 않는다.
 
@@ -435,7 +477,7 @@ scope_codes: []
 | 검사 ID | 실패 조건 | 통과 조건 |
 |---|---|---|
 | `INTAKE-001` | B-00 ID는 있지만 권한 근거·서명·상한을 제한 저장소에서 찾을 수 없음 | 원문과 Git 투영값 일치 |
-| `INTAKE-002` | 최소 네 석 미배정 또는 금지 겸임 존재 | 역할·독립성 검사 통과 |
+| `INTAKE-002` | 통합 `R-OWNER` 서명 기록 누락, 일곱 기능 미매핑 또는 자체 검토 한계 미표시 | 1인 역할·자체 검토 검사 통과 |
 | `INTAKE-003` | 자료 유형 하나라도 저장·접근·보존·삭제 경로 없음 | 전체 데이터 맵 완결 |
 | `INTAKE-004` | 합성 자료가 운영본·백업·파생자료 중 하나에 잔존 | 삭제 리허설 전부 통과 |
 | `INTAKE-005` | 무단 채널, 빈 예산·사례비·기간 또는 담당자 없음 | B-03 실제 값·허가 증거 완결 |
@@ -445,13 +487,13 @@ scope_codes: []
 | `INTAKE-009` | 승인 만료 또는 범위 밖 행동 | 상태 `EXPIRED`, 해당 행동 차단 |
 | `INTAKE-010` | 제한 저장소 원문과 Git ID가 연결되지 않음 | `SUBMITTED` 이하, V0 승인 금지 |
 
-모든 검사는 승인자와 별도 검증자가 각각 확인한다. 한 명만 있는 개인 프로젝트라면 외부 검증자를 확보하지 못한 항목을 독립 검증 완료로 표시하지 않는다.
+모든 검사는 `R-OWNER`가 실행 단계와 자체 검산 단계를 나눠 확인한다. 두 단계의 실행 시각·입력·출력 해시를 별도로 남기며, 같은 사람이 수행한 결과를 독립 검증 완료로 표시하지 않는다.
 
 ## 12. 문제 해결
 
-### 실제 담당자를 아직 정하지 못한 경우
+### 통합 역할 서명 기록을 아직 만들지 못한 경우
 
-B-01을 `UNVERIFIED`로 유지한다. 역할명을 임의의 사람 이름이나 AI로 채우지 않는다. V0 문서 검토 외 작업은 시작하지 않는다.
+B-01을 `UNVERIFIED`로 유지한다. 대화의 역할 선택이나 AI를 서명 기록으로 대체하지 않는다. V0 문서 검토 외 작업은 시작하지 않는다.
 
 ### 연구 저장소 공급자가 처리 국가나 삭제 방식을 공개하지 않는 경우
 
