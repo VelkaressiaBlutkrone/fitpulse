@@ -8,13 +8,15 @@ Updated: 2026-08-14
 
 ## 현재 결론
 
-- 제품 구현: **승인되지 않음**
-- 외부 참가자 모집·연락: **승인되지 않음**
+- 현재 단계: **`PREVALIDATION_LITE` — 랜딩과 비민감 수요 데이터 수집 우선**
+- 랜딩 구현·로컬 검증: **진행**
+- 랜딩 공개·대기자 모집: 실제 호스팅·저장·분석 공급자와 개인정보 안내가 일치하는지 확인한 뒤 **진행**
+- 제품·앱 구현: **아직 진행하지 않음**
 - 결제·예약금 수집: **승인되지 않음**
+- 건강·의료·웨어러블 데이터 수집과 개인화 추천: **승인되지 않음**
 - 계약·예산 책임 모델: **개인사업자 1인 자체 검토** (`SOLE_PROPRIETOR_SELF_REVIEW`). 본인 통제·500,000원 상한·전체 B-00 범위·`GATE_V0_DECISION_ISSUED` 종료 조건 입력 완료
 - 검증 보증 수준: **창업자 자체 검토**. 외부 역할 인력은 필수 배정하지 않으며 독립 검증 완료를 주장하지 않음
-- 현재 허용 작업: B-00~B-05 실제 승인 근거 준비, 내부 문서 검토, 합성 자료를 사용한 저장·삭제 리허설 설계
-- 현재 차단 원인: B-00 대체 기록과 B-01 역할 기록은 제출됐지만 서명 시각·원문 대조 확인이 없어 `OWNER_VERIFIED`가 아니며, 승인 연구 저장소·모집 조건·약정 오퍼·상표 전문가 검토 경로도 확인되지 않음
+- B-00~B-05 상태: 서비스·사업 운영 전 참고 이력. 현재 랜딩 구현의 선행 차단 조건으로 사용하지 않음
 
 ## 문서 권위
 
@@ -32,14 +34,16 @@ Updated: 2026-08-14
 
 | 문서 | 종류 | 용도 | 현재 상태 |
 |---|---|---|---|
+| [랜딩 우선 사전 검증 결정](./decisions/ADR-20260814-002-prevalidation-lite-landing-first.md) | Decision | 현재 범위와 정식 문서 체계 재개 조건 | 승인됨; 현재 최우선 기준 |
+| [랜딩·데이터 검증 실행 계획](./plans/fitpulse-landing-data-validation-execution-plan-20260814.md) | How-to / Plan | 랜딩 구현, 비민감 수집, 공개 전 체크 | 실행 중 |
 | [개인사업자 1인 자체 검토 거버넌스 결정](./decisions/ADR-20260814-001-sole-proprietor-self-review-governance.md) | Decision | V0~V2 역할 통합, 보증 수준과 주장 제한 | 승인됨; 실행 권한은 부여하지 않음 |
 | [증거 게이트형 단계별 제품 프로그램](./design/fitpulse-evidence-gated-product-program-design-20260814.md) | Explanation / Reference | 전체 게이트, 문서 권위, 역할·데이터 경계 | 설계 기준 |
 | [Android 자동 진행 코치 상품 검증 개정안](./design/fitpulse-android-progression-coach-validation-design-20260814.md) | Explanation | 대상 사용자와 단계별 상품 검증 방향 | 설계 기준 |
-| [V0·V1 브랜드 및 문제 검증 실행 계획](./plans/fitpulse-v0-v1-brand-and-problem-validation-plan-20260814.md) | Reference / Explanation | V0·V1 판정 규칙과 전체 실행 순서 | 담당자 입력 대기 |
-| [B-00~B-05 승인·증거 인수 방법](./plans/fitpulse-v0-authorization-evidence-intake-guide-20260814.md) | How-to | 민감정보를 Git에 넣지 않고 차단 필드를 제출·검증하는 방법 | 사용 가능 |
-| [V0 측정 계획](./plans/MEASURE-V0-20260814-001.md) | Reference | V0 실행 단위, 검색·리허설·판정 계약 | 문서 `DRAFT`, 실행 `BLOCKED` |
-| [V1 중립 연구 모집 페이지 계획](./plans/fitpulse-v1-research-recruitment-page-plan-20260814.md) | Reference / How-to | 제품·가격 비노출 모집 페이지 계약 | 실행 차단 |
-| [V2 랜딩 수요 실험 계획](./plans/fitpulse-v2-landing-demand-experiment-plan-20260814.md) | Reference / Explanation | V1 `GO` 뒤의 메시지·오퍼 실험 | V1 전 실행 차단 |
+| [V0·V1 브랜드 및 문제 검증 실행 계획](./plans/fitpulse-v0-v1-brand-and-problem-validation-plan-20260814.md) | Reference / Explanation | 정식 검증 체계 재개 시 참고 | 현재 실행 기준 아님 |
+| [B-00~B-05 승인·증거 인수 방법](./plans/fitpulse-v0-authorization-evidence-intake-guide-20260814.md) | Reference | 정식 서비스·사업 운영 전 증거 관리 참고 | 현재 랜딩의 차단 조건 아님 |
+| [V0 측정 계획](./plans/MEASURE-V0-20260814-001.md) | Reference | 상세 사전 등록이 필요한 후속 실험 참고 | 현재 실행 기준 아님 |
+| [V1 중립 연구 모집 페이지 계획](./plans/fitpulse-v1-research-recruitment-page-plan-20260814.md) | Reference | 후속 정성 연구 참고 | 현재 실행 기준 아님 |
+| [V2 랜딩 수요 실험 계획](./plans/fitpulse-v2-landing-demand-experiment-plan-20260814.md) | Reference | 유료 약정·정식 실험 단계 참고 | 현재 실행 기준에서 대체됨 |
 
 ## 산출물 위치
 
@@ -64,8 +68,8 @@ Git에는 승인된 제한 저장소의 불투명한 기록 ID, 상태, 확인�
 
 ## 다음 작업
 
-1. 제한 저장소에서 B-00 대체 기록 `AUTH-V0-B00-20260814-002`와 B-01 역할 기록 `ROLE-V0-B01-20260814-001`의 서명 시각·적용 범위·종료 조건을 원문과 대조한다.
-2. 본인이 대조를 마쳤다는 확인값과 실제 ISO 8601 서명 시각을 제출해 B-00·B-01의 `OWNER_VERIFIED` 전환 여부를 판정한다.
-3. B-00·B-01 통과 뒤 [승인·증거 인수 방법](./plans/fitpulse-v0-authorization-evidence-intake-guide-20260814.md)에 따라 B-02 저장·접근·보존·삭제 경로를 설계하고 합성 자료 리허설을 준비한다.
-4. `MEASURE-V0`가 승인되기 전에는 외부 연락, 브랜드 구매, 결제 링크 생성 또는 참가자 자료 수집을 하지 않는다.
-5. V0 실행 뒤 별도의 `docs/decisions/GATE-V0-<date>-<sequence>.md`로 `GO/LOOP/STOP`을 판정한다.
+1. [랜딩·데이터 검증 실행 계획](./plans/fitpulse-landing-data-validation-execution-plan-20260814.md)에 따라 `landing/`을 테스트 우선으로 구현한다.
+2. 로컬 빌드와 모바일 QA 뒤 실제 호스팅·저장·분석 공급자를 확정한다.
+3. 실제 데이터 흐름과 일치하는 개인정보 안내와 삭제 경로를 확인한 뒤 랜딩을 공개한다.
+4. 초기 100개 유효 방문의 기준선을 확인한 뒤 다음 실험과 A/B 테스트 여부를 결정한다.
+5. 결제, 건강정보, 개인화 추천, 계정 또는 정식 서비스 단계에 진입할 때 실제 구조를 기준으로 정식 운영 문서를 다시 작성한다.

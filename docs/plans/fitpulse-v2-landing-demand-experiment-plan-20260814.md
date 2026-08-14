@@ -1,6 +1,6 @@
 # Plan: FitPulse V2 랜딩 수요 실험
 
-Status: DRAFT — BLOCKED UNTIL V1 GO
+Status: SUPERSEDED FOR PREVALIDATION — SERVICE-ACTIVATION REFERENCE
 
 Date: 2026-08-14
 
@@ -12,7 +12,9 @@ Observation window: 14 calendar days after launch gate
 
 Product implementation authorized: **NO**
 
-Landing publication authorized: **NO**
+Landing publication authorized by this document: **NO — SEE CURRENT EXECUTION PLAN**
+
+> 현재 `PREVALIDATION_LITE` 단계에는 이 문서의 V1 선행 게이트와 유료 약정 절차를 적용하지 않는다. 현재 기준은 [ADR-20260814-002](../decisions/ADR-20260814-002-prevalidation-lite-landing-first.md)와 [랜딩·데이터 검증 실행 계획](./fitpulse-landing-data-validation-execution-plan-20260814.md)이다. 이 문서는 결제·약정 또는 정식 서비스 검증을 시작할 때 참고한다.
 
 ## 결론
 
@@ -580,4 +582,4 @@ Framer/Carrd+Tally 또는 Next.js 같은 구현 선택은 다음 산식으로 �
 
 ## 문서 판정
 
-**VERDICT:** 랜딩 실험의 증거 위계, A/B 경계, 14일 관찰창, 개인정보·오퍼·시험 계약은 정의됐다. V1 GO와 모든 차단 필드가 없으므로 페이지 공개, 광고, 신청과 결제는 허용되지 않는다.
+**VERDICT:** 현재 사전 랜딩의 실행 기준에서는 대체됐다. 랜딩 공개 여부는 `PREVALIDATION_LITE` 계획의 최소 공개 조건으로 판단하며, 이 문서의 유료 약정·게이트 절차는 결제 또는 정식 서비스 검증 단계에서 다시 검토한다.
