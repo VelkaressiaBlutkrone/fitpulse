@@ -61,6 +61,18 @@ test("renders the mobile-first demand validation landing", async () => {
   await access(new URL("../public/fitpulse-social-card.png", import.meta.url));
 });
 
+test("publishes the prevalidation privacy notice with the operating contact", async () => {
+  const response = await request("/privacy");
+  assert.equal(response.status, 200);
+
+  const html = await response.text();
+  assert.match(html, /mailto:info@leva\.ai\.kr/);
+  assert.match(html, /OpenAI Sites/);
+  assert.match(html, /Cloudflare D1/);
+  assert.match(html, /삭제 요청/);
+  assert.doesNotMatch(html, /공개 전 초안|연락처.*확정|최종본으로 교체/);
+});
+
 test("rejects invalid waitlist submissions before persistence", async () => {
   const missingConsent = await request("/api/waitlist", {
     method: "POST",
