@@ -24,7 +24,7 @@ Payment or deposit collection authorized: **NO**
 - 종료 조건: `GATE_V0_DECISION_ISSUED`
 - 범위: 내부 조사, 상표 전문가 계약, 연구 저장소 계약, 참가자 모집·사례비, 환불 가능한 예약금 수집
 
-이 입력은 서명 원문과 검증 기록을 대신하지 않는다. B-00은 계속 `UNVERIFIED`이며 B-02~B-04가 충족되기 전 참가자 모집·사례비·예약금 실행은 금지된다.
+사용자는 2026-08-14에 서명 원문을 Git 외부에 저장하고 불투명 ID `AUTH-V0-B00-20260814-001`을 제출했다고 확인했다. 따라서 B-00은 `SUBMITTED`다. 원문 내용과 Git 투영값을 독립 검토자가 아직 대조하지 않았으므로 `VERIFIED`는 아니며, B-02~B-04가 충족되기 전 참가자 모집·사례비·예약금 실행은 금지된다.
 
 관련 문서:
 
@@ -94,8 +94,8 @@ Payment or deposit collection authorized: **NO**
 
 ~~~yaml
 b00:
-  status: UNVERIFIED
-  input_state: COMPLETE_AWAITING_SIGNED_RECORD
+  status: SUBMITTED
+  input_state: SIGNED_RECORD_SUBMITTED_AWAITING_VERIFICATION
   responsibility_model: INDIVIDUAL_PROJECT
   responsibility_model_confirmed_at: 2026-08-14
   authority_control_attested: true
@@ -108,7 +108,10 @@ b00:
     - RESEARCH_STORE_CONTRACT
     - PARTICIPANT_RECRUITMENT_AND_INCENTIVE
     - REFUNDABLE_DEPOSIT_COLLECTION
-  authorization_record_id: NOT_PROVIDED
+  authorization_record_id: AUTH-V0-B00-20260814-001
+  signed_record_presence_attested: true
+  signed_record_content_verified: false
+  signed_record_submitted_at: 2026-08-14
   authority_basis_verified: false
   approved_scope_codes: []
   budget_cap_krw: null
@@ -407,14 +410,14 @@ b05:
 intake_version: B00-B05-20260814-001
 jurisdiction: KR
 private_record_system_id: NOT_PROVIDED
-b00_authorization_record_id: NOT_PROVIDED
+b00_authorization_record_id: AUTH-V0-B00-20260814-001
 b01_role_assignment_record_id: NOT_PROVIDED
 b02_data_lifecycle_record_id: NOT_PROVIDED
 b03_recruitment_record_id: NOT_PROVIDED
 b04_offer_review_record_id: NOT_PROVIDED
 b05_trademark_route_record_id: NOT_PROVIDED
 statuses:
-  B-00: UNVERIFIED
+  B-00: SUBMITTED
   B-01: UNVERIFIED
   B-02: UNVERIFIED
   B-03: UNVERIFIED
