@@ -16,7 +16,15 @@ Payment or deposit collection authorized: **NO**
 
 현재 저장소에서는 B-00~B-05의 실제 값을 확인할 수 없다. 따라서 모든 필드는 `UNVERIFIED`이며, [V0 측정 계획](./MEASURE-V0-20260814-001.md)은 문서 `DRAFT`, 실행 `BLOCKED` 상태다.
 
-2026-08-14 사용자 입력으로 계약·예산 책임 모델이 **개인 프로젝트**라는 점은 확인했다. 이는 분류 입력일 뿐, 계약·결제 계정과 연구 예산을 실제로 통제한다는 서명 기록을 대신하지 않는다. B-00은 계속 `UNVERIFIED`다.
+2026-08-14 사용자 입력으로 계약·예산 책임 모델이 **개인 프로젝트**라는 점과 다음 B-00 입력을 확인했다.
+
+- 연구 착수·예산·외부 계약·결제 계정 직접 통제: `true`
+- V0 총예산 상한: 500,000원
+- 발효일: 2026-08-14
+- 종료 조건: `GATE_V0_DECISION_ISSUED`
+- 범위: 내부 조사, 상표 전문가 계약, 연구 저장소 계약, 참가자 모집·사례비, 환불 가능한 예약금 수집
+
+이 입력은 서명 원문과 검증 기록을 대신하지 않는다. B-00은 계속 `UNVERIFIED`이며 B-02~B-04가 충족되기 전 참가자 모집·사례비·예약금 실행은 금지된다.
 
 관련 문서:
 
@@ -87,8 +95,19 @@ Payment or deposit collection authorized: **NO**
 ~~~yaml
 b00:
   status: UNVERIFIED
+  input_state: COMPLETE_AWAITING_SIGNED_RECORD
   responsibility_model: INDIVIDUAL_PROJECT
   responsibility_model_confirmed_at: 2026-08-14
+  authority_control_attested: true
+  owner_attested_budget_cap_krw: 500000
+  owner_attested_valid_from: 2026-08-14
+  owner_attested_termination_trigger: GATE_V0_DECISION_ISSUED
+  owner_attested_scope_codes:
+    - INTERNAL_RESEARCH
+    - TRADEMARK_EXPERT_CONTRACT
+    - RESEARCH_STORE_CONTRACT
+    - PARTICIPANT_RECRUITMENT_AND_INCENTIVE
+    - REFUNDABLE_DEPOSIT_COLLECTION
   authorization_record_id: NOT_PROVIDED
   authority_basis_verified: false
   approved_scope_codes: []
@@ -96,6 +115,38 @@ b00:
   valid_from: null
   valid_until: null
   verified_at: null
+~~~
+
+범위 코드는 B-00에서 비용·계약 권한을 어디까지 위임하려는지 기록한다. 코드가 목록에 있다는 사실만으로 해당 행동이 실행 가능해지지 않는다. `PARTICIPANT_RECRUITMENT_AND_INCENTIVE`는 B-02·B-03, `REFUNDABLE_DEPOSIT_COLLECTION`은 B-02·B-04와 V0 `GO`가 추가로 필요하다.
+
+### 개인 프로젝트 서명 원문 템플릿
+
+아래 템플릿의 완료본은 Git이나 이 대화에 붙이지 않고 제한 저장소에 둔다.
+
+~~~text
+기록 ID: [제한 저장소의 불투명 ID]
+책임 모델: 개인 프로젝트
+
+본인은 FitPulse V0에 대해 연구 착수, 연구 예산,
+외부 계약 및 결제 계정을 직접 통제합니다.
+
+총예산 상한: 500,000원
+발효일: 2026-08-14
+종료 조건: GATE_V0_DECISION_ISSUED
+
+허용 범위:
+- 내부 조사
+- 상표 전문가 계약
+- 연구 저장소 계약
+- 참가자 모집 및 사례비
+- 환불 가능한 예약금 수집
+
+본 승인은 B-02~B-05 및 GATE-V0의 별도 통과 조건을
+면제하지 않으며, 해당 조건 전에는 외부 실행을 시작하지 않습니다.
+
+책임자 식별정보: [제한 저장소에만 기록]
+서명: [제한 저장소에만 기록]
+서명 시각: [ISO 8601]
 ~~~
 
 `authorization_record_id`만으로는 충분하지 않다. R-PRIVACY 또는 지정 검토자가 제한 저장소에서 원문과 Git 투영값이 같은지 확인해야 한다.
