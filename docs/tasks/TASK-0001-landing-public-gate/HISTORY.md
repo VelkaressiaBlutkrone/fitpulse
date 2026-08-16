@@ -1,0 +1,44 @@
+# TASK-0001 History
+
+| Date | Type | ID | Status | Branch | Commit | PR | Validation | Description |
+|---|---|---|---|---|---|---|---|---|
+| 2026-08-17 | Task | TASK-0001 | Draft | task/TASK-0001-landing-public-gate | - | - | 문서 검토 | TASK 생성. 랜딩 공개 게이트 해소와 기준선 계측 범위 확정 |
+| 2026-08-17 | Workflow | WF-01 | Draft | workflow/TASK-0001-WF-01-provider-selection | - | - | Not Run | Workflow 문서 생성 |
+| 2026-08-17 | Workflow | WF-02 | Draft | workflow/TASK-0001-WF-02-abuse-defense | - | - | Not Run | Workflow 문서 생성 |
+| 2026-08-17 | Workflow | WF-03 | Draft | workflow/TASK-0001-WF-03-email-confirmation | - | - | Not Run | Workflow 문서 생성 |
+| 2026-08-17 | Workflow | WF-04 | Draft | workflow/TASK-0001-WF-04-privacy-runbook-alignment | - | - | Not Run | Workflow 문서 생성 |
+| 2026-08-17 | Workflow | WF-05 | Draft | workflow/TASK-0001-WF-05-cost-cap-observability | - | - | Not Run | Workflow 문서 생성 |
+| 2026-08-17 | Workflow | WF-06 | Draft | workflow/TASK-0001-WF-06-public-decision-baseline | - | - | Not Run | Workflow 문서 생성 |
+
+## 기록해야 할 사건과 현재 상태
+
+### 2026-08-17 — TASK 생성 시점의 사실
+
+**저장소 준비 작업 (TASK-0001 이전, `develop`에 반영됨)**
+
+- `03511af docs: adopt task and workflow execution rules` — `CLAUDE.md` 작업 실행 규칙 절과 `docs/claude/01~05` 추가
+- `ec9da88 docs: archive published wiki document set` — `wiki/` v1·v2 문서 세트 30개 파일 보관
+- `develop`을 `ec9da88`로 fast-forward 하고 `origin`에 최초 push. 이력 재작성 없음
+- 위 두 커밋은 TASK-0001 범위가 아니며, TASK 문서가 참조하는 규칙·템플릿을 통합 브랜치에 올리기 위한 선행 정리다
+
+**미해결 규칙 불일치**
+
+- `CLAUDE.md` 3절과 5절이 통합 브랜치를 `dev`로 표기하나, 실제 통합 브랜치는 `develop`이다. 이 TASK의 모든 문서는 `develop`을 Base로 쓴다. 표기 정정은 별도 chore TASK로 분리했다
+- `.github/workflows/landing.yml`의 `push` 트리거가 `main`만 대상으로 한다. `develop` push는 CI가 돌지 않는다. `pull_request` 트리거는 Base와 무관하게 동작하므로 Workflow PR과 Task PR에서는 CI가 동작한다
+- 저장소 루트에 `.gitignore`가 없다. `landing/.gitignore`만 존재하며, `.omc/` 같은 도구 상태 디렉터리가 untracked로 남는다
+
+**검증 미실행 사실**
+
+- 이 시점에 `landing/`의 `npm test`, `npm run lint`, `npm audit`을 실행하지 않았다. TASK-0001은 문서만 추가하며 코드를 변경하지 않는다
+- 각 Workflow의 Validation 표는 전부 `Not Run` 상태다
+
+**Scope 판단 근거**
+
+- `wiki/` v2 문서 세트(요구사항 136건, ERD 43테이블, TC 235건)는 `wiki/README.md` 3행이 역사 참조본으로 명시하므로 구현 범위에서 제외했다
+- 앱·계정·결제·건강데이터·개인화는 `ADR-20260814-002`가 현재 단계 제외 범위로 명시하므로 제외했다
+- A/B 테스트는 `docs/plans/fitpulse-landing-data-validation-execution-plan-20260814.md` 110행이 기준선 확보 우선을 명시하므로 제외했다
+
+**코드 확인으로 좁혀진 범위**
+
+- `landing/db/schema.ts` 11행의 `verified_at` 컬럼, `landing/db/landing-storage.ts` 5·21~22행의 미확인 14일 삭제 조건, `landing/worker/index.ts` 169행의 `scheduled` 핸들러가 이미 구현되어 있다
+- 따라서 WF-03의 신규 범위는 확인 토큰 발급·발송·검증과 `verified_at` 설정으로 한정되며, 만료 삭제와 예약 작업은 회귀 확인 대상이다
