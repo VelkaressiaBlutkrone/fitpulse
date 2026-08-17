@@ -68,3 +68,36 @@
 
 - `landing/db/schema.ts` 11행의 `verified_at` 컬럼, `landing/db/landing-storage.ts` 5·21~22행의 미확인 14일 삭제 조건, `landing/worker/index.ts` 169행의 `scheduled` 핸들러가 이미 구현되어 있다
 - 따라서 WF-03의 신규 범위는 확인 토큰 발급·발송·검증과 `verified_at` 설정으로 한정되며, 만료 삭제와 예약 작업은 회귀 확인 대상이다
+
+### 2026-08-17 — WF-07 전제 오류와 정정
+
+WF-07은 "프로덕션 D1을 직접 생성한다"로 정의되어 있었다. 착수 중 이 전제가 틀렸음을 확인하고 재정의했다.
+
+**확인한 사실**
+
+- `landing/.openai/hosting.json`에 `project_id`와 `d1: "DB"`가 있다.
+- `landing/vite.config.ts` 24~33행이 `database_id`를 플레이스홀더로 하드코딩하고 `migrations_dir`를 `dist/.openai/drizzle`로 지정한다.
+- `landing/build/sites-vite-plugin.ts` 27~42행이 `hosting.json`과 `drizzle/`를 `dist/.openai/`로 패키징한다.
+
+즉 이 랜딩은 OpenAI Sites 플랫폼 배포 패키지를 만들고, **D1은 플랫폼이 프로비저닝한다.** 플레이스홀더 `database_id`는 결함이 아니라 의도된 설계이며, Cloudflare 계정에 D1이 없는 것도 정상 상태다.
+
+**되돌린 조치**
+
+| 실행 | 되돌림 | 확인 |
+|---|---|---|
+| `wrangler d1 create fitpulse-landing --location=apac` (`cabbfb2c-f7c5-494f-84da-c8fb974fdcce`, APAC) | `wrangler d1 delete --skip-confirmation` | `d1 list`가 `[]` 반환 |
+| `worker/wrangler.jsonc`의 `database_name`·`database_id` 변경 | `git checkout --` | 원래 값 복원 |
+| `package.json`에 `db:migrate:remote` 추가 | `git checkout --` | 제거 확인 |
+
+생성한 데이터베이스에는 테이블·데이터가 없었고(`num_tables: 0`) 어떤 배포와도 연결되지 않아 데이터 손실은 없다.
+
+**원인과 재발 방지**
+
+배포 대상과 빌드 파이프라인을 먼저 읽지 않고 `wrangler d1 info` 결과만으로 결함을 판단했다. 인프라 관련 판단 전에는 `vite.config.ts`, 빌드 플러그인, 호스팅 설정을 먼저 확인한다.
+
+**영향**
+
+- `ADR-20260817-003`의 "D1 위치 힌트 `apac`" 결정을 철회했다.
+- WF-07을 "배포 플랫폼의 데이터 처리 사실 확인"으로 재정의했다.
+- AC-13·AC-14를 플랫폼 기준으로 다시 썼다.
+- WF-01의 미확인 항목 5(랜딩 호스팅의 실제 위치와 로그 보존)가 이 TASK에서 가장 중요한 미확인 항목이 되었다.
