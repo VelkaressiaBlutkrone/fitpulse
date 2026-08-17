@@ -22,6 +22,7 @@
 | 2026-08-17 | Workflow | WF-01 | Done | workflow/TASK-0001-WF-01-provider-selection | e6c64bc | - | 문서 대조 Passed | 소유자 선택으로 ADR-20260817-003 ACCEPTED. Turnstile Free, Amazon SES `ap-northeast-2`, D1 위치 `apac` 확정 |
 | 2026-08-17 | Workflow | WF-07 | Draft | workflow/TASK-0001-WF-07-d1-provisioning | - | - | Not Run | 프로덕션 D1 프로비저닝 Workflow 신설. 최초 계획에 없었으며 WF-01 조사 결과로 추가 |
 | 2026-08-17 | Task | TASK-0001 | In Progress | task/TASK-0001-landing-public-gate | - | - | Not Run | Scope 변경: WF-07 추가, AC-13~AC-15 추가, WF-03·WF-05·WF-04·WF-06 의존에 WF-07 반영 |
+| 2026-08-17 | Task | TASK-0001 | In Progress | task/TASK-0001-landing-public-gate | - | - | N/A — 문서 변경 | 소유자 지시로 Merge Authority를 `Human-only`에서 `Auto-after-checks`로 변경. `docs/claude/03` §10 병합 금지 조건은 그대로 적용 |
 
 ## 기록해야 할 사건과 현재 상태
 

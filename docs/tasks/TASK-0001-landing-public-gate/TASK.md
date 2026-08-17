@@ -13,7 +13,7 @@
 | Related Issue | N/A — 이슈 트래커를 사용하지 않음 |
 | Base Branch | develop |
 | Task Branch | task/TASK-0001-landing-public-gate |
-| Merge Authority | Human-only |
+| Merge Authority | Auto-after-checks |
 | Decision References | `docs/decisions/ADR-20260814-002-prevalidation-lite-landing-first.md`, `docs/decisions/ADR-20260814-001-sole-proprietor-self-review-governance.md` |
 | Rule References | `CLAUDE.md`, `docs/claude/01-task-workflow.md`, `docs/claude/02-git-operations.md`, `docs/claude/04-validation-checklists.md`, `docs/claude/05-templates.md` |
 | Dependencies | 없음 — 이 저장소의 첫 TASK |
@@ -100,6 +100,18 @@
 - [ ] AC-10: 실행 계획 84~93행 공개 전 체크 8개 항목 전부가 확인 결과와 확인일과 함께 체크 또는 미체크로 판정되어 있다.
 - [ ] AC-11: 공개 GO 또는 NO-GO 결론이 AC-10의 판정 결과를 근거로 `docs/decisions/`에 기록되어 있다.
 - [ ] AC-12: `waitlist_submit / landing_view`와 보조 지표 5종(CTA 클릭률, 선택 설문 완료율, 인터뷰 안내 수신 선택률, 채널별 획득비용, WF-03이 추가한 확인 완료율 `waitlist_confirm / waitlist_submit`)을 산출하는 질의가 문서화되어 있고, 같은 입력에 같은 결과를 내는 것이 확인되었다.
+
+## Merge Authority 변경 기록
+
+2026-08-17 소유자 지시로 `Human-only`에서 **`Auto-after-checks`**로 변경했다.
+
+`docs/claude/01-task-workflow.md` §4의 정의에 따라 이 값은 "저장소 정책이 허용하고 모든 조건 충족 시 허용"을 뜻한다. 병합을 무조건 허용하는 값이 아니며, 다음은 그대로 적용된다.
+
+- `docs/claude/03-pr-review-merge.md` §10의 병합 금지 조건 전부 — 필수 CI 실패·진행 중, 잘못된 PR Base, Merge Conflict, Scope 밖 변경, Secret 가능성, 미실행 테스트를 통과로 기록, 문서와 실제 변경 불일치 등
+- Workflow PR Base는 해당 `task/*`, Task PR Base는 통합 브랜치라는 규칙
+- `main` 병합은 Release 절차로만 수행한다는 규칙
+
+즉 CI가 녹색이고 위 금지 조건에 걸리지 않을 때만 병합하며, 하나라도 걸리면 병합하지 않고 보고한다.
 
 ## Dependencies
 
