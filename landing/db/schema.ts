@@ -11,11 +11,16 @@ export const waitlistEntries = sqliteTable(
     verifiedAt: text("verified_at"),
     channelCode: text("channel_code").notNull(),
     managementTokenHash: text("management_token_hash"),
+    // 확인 토큰은 해시만 저장한다. 원문은 메일 링크에만 실린다.
+    // 확인이 끝나면 해시를 지워 링크 재사용을 막는다. TASK-0001 / WF-03 참조.
+    confirmationTokenHash: text("confirmation_token_hash"),
+    confirmationExpiresAt: text("confirmation_expires_at"),
     createdAt: text("created_at").notNull(),
   },
   (table) => [
     uniqueIndex("waitlist_email_ci_idx").on(sql`lower(${table.email})`),
     uniqueIndex("waitlist_management_token_idx").on(table.managementTokenHash),
+    uniqueIndex("waitlist_confirmation_token_idx").on(table.confirmationTokenHash),
   ],
 );
 
@@ -51,6 +56,14 @@ export const landingEvents = sqliteTable(
     index("landing_events_name_created_idx").on(table.eventName, table.createdAt),
   ],
 );
+
+// 배포 플랫폼이 예약 작업을 지원하지 않으므로 정리 실행 시각을 남긴다.
+// 요청 시점 정리가 매 쓰기마다 반복되지 않게 하는 게이트로 쓴다.
+// TASK-0001 / WF-09 참조.
+export const maintenanceRuns = sqliteTable("maintenance_runs", {
+  name: text("name").primaryKey(),
+  lastRunAt: integer("last_run_at").notNull(),
+});
 
 export const requestRateLimits = sqliteTable(
   "request_rate_limits",

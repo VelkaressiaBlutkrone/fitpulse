@@ -35,6 +35,7 @@ Updated: 2026-08-14
 
 | 문서 | 종류 | 용도 | 현재 상태 |
 |---|---|---|---|
+| [세션 인계 문서 2026-08-17](./HANDOFF-20260817.md) | Handoff | 진행 상태, 차단 요인, 다음 작업 순서 | **다음 세션이 먼저 읽는다** |
 | [랜딩 우선 사전 검증 결정](./decisions/ADR-20260814-002-prevalidation-lite-landing-first.md) | Decision | 현재 범위와 정식 문서 체계 재개 조건 | 승인됨; 현재 최우선 기준 |
 | [랜딩·데이터 검증 실행 계획](./plans/fitpulse-landing-data-validation-execution-plan-20260814.md) | How-to / Plan | 랜딩 구현, 비민감 수집, 공개 전 체크 | 실행 중 |
 | [랜딩 데이터 삭제·보존 런북](./runbooks/fitpulse-landing-data-deletion-retention.md) | Runbook | 직접 삭제, 자동 만료와 검산 절차 | 소유자 전용 검증에 적용 |

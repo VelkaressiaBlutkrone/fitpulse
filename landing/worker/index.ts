@@ -1,7 +1,14 @@
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
-import { consumeRateLimit, purgeExpiredData } from "../db/landing-storage";
-import { handleApiWrite } from "../app/lib/api-handlers";
+import { consumeRateLimit, purgeExpiredData, runRetentionPurge } from "../db/landing-storage";
+import {
+  handleApiWrite,
+  handleMaintenancePurge,
+  handleWaitlistConfirm,
+  handleWaitlistSummary,
+} from "../app/lib/api-handlers";
+import { turnstileConfigFromEnv } from "../app/lib/turnstile";
+import { emailConfigFromEnv } from "../app/lib/email";
 import {
   createSessionToken,
   readCookie,
@@ -20,7 +27,19 @@ type ImagesBinding = {
 type WorkerEnv = Env & {
   ASSETS: Fetcher;
   IMAGES: ImagesBinding;
+  // Turnstile 시크릿은 wrangler secret으로 주입한다. 설정 파일에 값을 두지 않는다.
+  TURNSTILE_SECRET_KEY?: string;
+  // 기본값은 Cloudflare 실제 엔드포인트다. 테스트에서만 로컬 스텁으로 덮어쓴다.
+  TURNSTILE_VERIFY_URL?: string;
+  // 외부 스케줄러가 보존 정리를 호출할 때 쓰는 토큰. 미설정이면 트리거가 닫힌다.
+  MAINTENANCE_TOKEN?: string;
+  // 확인 메일 발송 어댑터 설정. 미설정이면 발송을 건너뛰고 등록은 성공한다.
+  EMAIL_SEND_URL?: string;
+  EMAIL_API_KEY?: string;
+  EMAIL_FROM?: string;
 };
+
+const TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
 
 const API_LIMITS: Record<string, number> = {
   "/api/events": 30,
@@ -57,7 +76,9 @@ function withSecurityHeaders(request: Request, response: Response) {
   const headers = new Headers(response.headers);
   headers.set(
     "content-security-policy",
-    "default-src 'self'; base-uri 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'none'; img-src 'self' data:; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'",
+    // Turnstile 위젯은 challenges.cloudflare.com에서 스크립트를 받아 iframe으로 렌더링한다.
+    // 해당 출처만 script-src와 frame-src에 추가하고 나머지 지시문은 좁게 유지한다.
+    `default-src 'self'; base-uri 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'none'; frame-src ${TURNSTILE_ORIGIN}; img-src 'self' data:; object-src 'none'; script-src 'self' 'unsafe-inline' ${TURNSTILE_ORIGIN}; style-src 'self' 'unsafe-inline'`,
   );
   headers.set("cross-origin-opener-policy", "same-origin");
   headers.set("cross-origin-resource-policy", "same-origin");
@@ -102,6 +123,25 @@ async function handleApplicationRequest(
     }, allowedWidths);
   }
 
+  // 확인 링크는 메일에서 열리므로 GET이다. 토큰은 즉시 소비되고
+  // 토큰 없는 주소로 리다이렉트한다.
+  if (url.pathname === "/api/waitlist/confirm") {
+    if (request.method !== "GET") return jsonError("method_not_allowed", 405);
+    return handleWaitlistConfirm(request, env.DB);
+  }
+
+  if (url.pathname === "/api/waitlist/summary") {
+    if (request.method !== "GET") return jsonError("method_not_allowed", 405);
+    return handleWaitlistSummary(env.DB);
+  }
+
+  // 예약 작업을 쓸 수 없으므로 인증된 외부 스케줄러가 이 경로로 정리를 돌린다.
+  if (url.pathname === "/api/maintenance/purge") {
+    if (request.method !== "POST") return jsonError("method_not_allowed", 405);
+    await discardRequestBody(request);
+    return handleMaintenancePurge(request, env.DB, env.MAINTENANCE_TOKEN);
+  }
+
   const rateLimit = API_LIMITS[url.pathname];
   const isWrite = rateLimit !== undefined && (request.method === "POST" || request.method === "DELETE");
   if (!isWrite) return handler.fetch(request, env, ctx);
@@ -134,7 +174,23 @@ async function handleApplicationRequest(
     return jsonError("storage_unavailable", 503);
   }
 
-  const response = await handleApiWrite(request, env.DB);
+  const response = await handleApiWrite(
+    request,
+    env.DB,
+    turnstileConfigFromEnv(env),
+    emailConfigFromEnv(env),
+  );
+
+  // 요청 시점 정리. 예약 작업이 없는 환경에서 보존 기간을 지키기 위한 1차 경로다.
+  // 최소 간격 게이트가 있어 매 쓰기마다 돌지 않으며, 실패해도 응답에 영향을 주지 않는다.
+  ctx.waitUntil(
+    runRetentionPurge(env.DB).catch((error) => {
+      console.error(JSON.stringify({
+        message: "retention_purge_failed",
+        error: error instanceof Error ? error.message : "unknown_error",
+      }));
+    }),
+  );
   if (existingVisitorToken) return response;
 
   const headers = new Headers(response.headers);

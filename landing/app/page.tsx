@@ -1,5 +1,12 @@
+import { env } from "cloudflare:workers";
 import Link from "next/link";
 import { TrackedCta, WaitlistForm } from "./components/WaitlistForm";
+
+// 공개 sitekey는 클라이언트에 노출되어도 되는 값이다. 시크릿 키와 혼동하지 않는다.
+function turnstileSiteKey() {
+  const value = (env as unknown as Record<string, unknown>).TURNSTILE_SITE_KEY;
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
 
 const problems = [
   {
@@ -143,7 +150,7 @@ export default function Home() {
             <li>확인된 주소만 대기자로 집계</li>
           </ul>
         </div>
-        <WaitlistForm />
+        <WaitlistForm turnstileSiteKey={turnstileSiteKey()} />
       </section>
 
       <section className="faq-section" aria-labelledby="faq-title">
