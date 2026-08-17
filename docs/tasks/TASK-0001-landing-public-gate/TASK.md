@@ -13,7 +13,7 @@
 | Related Issue | N/A — 이슈 트래커를 사용하지 않음 |
 | Base Branch | develop |
 | Task Branch | task/TASK-0001-landing-public-gate |
-| Merge Authority | Human-only |
+| Merge Authority | Auto-after-checks |
 | Decision References | `docs/decisions/ADR-20260814-002-prevalidation-lite-landing-first.md`, `docs/decisions/ADR-20260814-001-sole-proprietor-self-review-governance.md` |
 | Rule References | `CLAUDE.md`, `docs/claude/01-task-workflow.md`, `docs/claude/02-git-operations.md`, `docs/claude/04-validation-checklists.md`, `docs/claude/05-templates.md` |
 | Dependencies | 없음 — 이 저장소의 첫 TASK |
@@ -101,6 +101,18 @@
 - [ ] AC-11: 공개 GO 또는 NO-GO 결론이 AC-10의 판정 결과를 근거로 `docs/decisions/`에 기록되어 있다.
 - [ ] AC-12: `waitlist_submit / landing_view`와 보조 지표 5종(CTA 클릭률, 선택 설문 완료율, 인터뷰 안내 수신 선택률, 채널별 획득비용, WF-03이 추가한 확인 완료율 `waitlist_confirm / waitlist_submit`)을 산출하는 질의가 문서화되어 있고, 같은 입력에 같은 결과를 내는 것이 확인되었다.
 
+## Merge Authority 변경 기록
+
+2026-08-17 소유자 지시로 `Human-only`에서 **`Auto-after-checks`**로 변경했다.
+
+`docs/claude/01-task-workflow.md` §4의 정의에 따라 이 값은 "저장소 정책이 허용하고 모든 조건 충족 시 허용"을 뜻한다. 병합을 무조건 허용하는 값이 아니며, 다음은 그대로 적용된다.
+
+- `docs/claude/03-pr-review-merge.md` §10의 병합 금지 조건 전부 — 필수 CI 실패·진행 중, 잘못된 PR Base, Merge Conflict, Scope 밖 변경, Secret 가능성, 미실행 테스트를 통과로 기록, 문서와 실제 변경 불일치 등
+- Workflow PR Base는 해당 `task/*`, Task PR Base는 통합 브랜치라는 규칙
+- `main` 병합은 Release 절차로만 수행한다는 규칙
+
+즉 CI가 녹색이고 위 금지 조건에 걸리지 않을 때만 병합하며, 하나라도 걸리면 병합하지 않고 보고한다.
+
 ## Dependencies
 
 - 선행 TASK: 없음
@@ -138,11 +150,14 @@
 |---|---|---|---|---|---|---|
 | STEP-01 | WF-01 | 공급자·데이터 처리 사실 확인과 선정 | Done | workflow/TASK-0001-WF-01-provider-selection | - | 없음 |
 | STEP-01 | WF-07 | 프로덕션 D1 프로비저닝 | Draft | workflow/TASK-0001-WF-07-d1-provisioning | - | WF-01 |
-| STEP-02 | WF-02 | 공개 트래픽 남용 방어 서버 검증 | Draft | workflow/TASK-0001-WF-02-abuse-defense | - | WF-01 |
+| STEP-02 | WF-08 | package-lock 무결성 복구 | Review | workflow/TASK-0001-WF-08-lockfile-integrity | - | 없음 |
+| STEP-02 | WF-02 | 공개 트래픽 남용 방어 서버 검증 | Review | workflow/TASK-0001-WF-02-abuse-defense | #2 | WF-01, WF-08 |
 | STEP-02 | WF-03 | 이메일 확인 흐름 | Draft | workflow/TASK-0001-WF-03-email-confirmation | - | WF-01, WF-07 |
 | STEP-02 | WF-05 | 비용 상한·중단 조건과 운영 계측 | Draft | workflow/TASK-0001-WF-05-cost-cap-observability | - | WF-01, WF-07 |
 | STEP-03 | WF-04 | 개인정보 안내·삭제 런북 정합화 | Draft | workflow/TASK-0001-WF-04-privacy-runbook-alignment | - | WF-02, WF-03, WF-07 |
 | STEP-03 | WF-06 | 공개 판정과 기준선 계측 | Draft | workflow/TASK-0001-WF-06-public-decision-baseline | - | WF-02, WF-03, WF-04, WF-05, WF-07 |
+
+WF-08은 WF-02의 PR에서 Landing CI가 처음 실행되며 드러난 기존 결함(`package-lock.json` optional 의존성 누락)을 분리한 것이다. `docs/claude/01-task-workflow.md` §11의 "현재 TASK와 무관한 결함" 기준을 적용했다. WF-02는 CI 통과를 위해 WF-08 병합 이후로 의존이 생겼다.
 
 WF-07은 WF-01 조사에서 프로덕션 D1 부재가 확인되어 추가되었다. WF-02는 D1 스키마에 의존하지 않으므로 WF-07과 병렬 실행할 수 있다. WF-03·WF-05는 원격 D1이 있어야 검증이 성립하므로 WF-07 이후에 진행한다.
 

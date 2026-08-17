@@ -26,6 +26,13 @@
 | 2026-08-17 | Workflow | WF-02 | In Progress | workflow/TASK-0001-WF-02-abuse-defense | - | - | Not Run | 설계 결정 3건 확정 후 실패 테스트 선작성. `turnstileToken` 미지원으로 400 실패 확인 |
 | 2026-08-17 | Workflow | WF-02 | Review | workflow/TASK-0001-WF-02-abuse-defense | 3c9e5c5 | - | `npm test` 12개 Passed, lint Passed, audit Passed | Turnstile 서버 검증·클라이언트 위젯·CSP 구현 |
 | 2026-08-17 | Workflow | WF-02 | Done | workflow/TASK-0001-WF-02-abuse-defense | - | - | 수동 검증 5건 Passed, 1건 Not Run | 공개 테스트 키로 실제 siteverify 응답 계약 양방향 검증. `.dev.vars` gitignore 누락 수정. 실기기 뷰포트 QA만 Not Run |
+| 2026-08-17 | Workflow | WF-02 | Review | workflow/TASK-0001-WF-02-abuse-defense | - | #2 | Landing CI `verify` **Failed** | PR #2에서 Landing CI 첫 실행이 `npm ci` 단계에서 실패. 원인은 `package-lock.json`의 optional 의존성 누락이며 WF-02 변경과 무관 |
+| 2026-08-17 | Workflow | WF-08 | Review | workflow/TASK-0001-WF-08-lockfile-integrity | ee18c94 | - | lock 복구 Passed, `npm test` 8개 Passed | 위 CI 실패 원인을 `docs/claude/01` §11에 따라 별도 Workflow로 분리 |
+| 2026-08-17 | Workflow | WF-08 | Review | workflow/TASK-0001-WF-08-lockfile-integrity | - | #3 | Landing CI `verify` **Passed (55s)** | lock 복구가 `npm ci` 실패를 해소함이 입증됨 |
+| 2026-08-17 | Task | TASK-0001 | In Progress | task/TASK-0001-landing-public-gate | 55dad7c | - | N/A — 문서 변경 | 소유자 지시로 Merge Authority를 `Human-only`에서 `Auto-after-checks`로 변경. `docs/claude/03` §10 병합 금지 조건은 그대로 적용 |
+| 2026-08-17 | Workflow | WF-08 | In Progress | workflow/TASK-0001-WF-08-lockfile-integrity | 6874bdd | #3 | `npm test` 8개 Passed | Task Branch의 Merge Authority 커밋과 HISTORY 표 행이 충돌. 양쪽 행을 모두 보존해 해결. 원인은 WF-08 병합 전에 Task Branch를 먼저 수정한 순서 오류 |
+| 2026-08-17 | Workflow | WF-08 | Done | workflow/TASK-0001-WF-08-lockfile-integrity | 5b2e933 | #3 | Landing CI Passed (58s) | PR #3 squash 병합. Task Branch에 lock 복구 반영 확인 |
+| 2026-08-17 | Workflow | WF-02 | Review | workflow/TASK-0001-WF-02-abuse-defense | - | #2 | N/A — Conflict 해결 | WF-08 병합분을 WF-02에 반영. HISTORY 표 행 충돌을 양쪽 보존으로 해결 |
 
 ## 기록해야 할 사건과 현재 상태
 
