@@ -41,7 +41,15 @@ export function TrackedCta({
   );
 }
 
-export function WaitlistForm() {
+const TURNSTILE_SCRIPT_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+
+declare global {
+  interface Window {
+    turnstile?: { reset: (widget?: string) => void };
+  }
+}
+
+export function WaitlistForm({ turnstileSiteKey }: { turnstileSiteKey?: string }) {
   const [stage, setStage] = useState<Stage>("waitlist");
   const [busy, setBusy] = useState<BusyAction>(null);
   const [message, setMessage] = useState("");
@@ -59,6 +67,16 @@ export function WaitlistForm() {
       landingViewEventId(),
     );
   }, [channelCode]);
+
+  useEffect(() => {
+    if (!turnstileSiteKey) return;
+    if (document.querySelector(`script[src="${TURNSTILE_SCRIPT_SRC}"]`)) return;
+    const script = document.createElement("script");
+    script.src = TURNSTILE_SCRIPT_SRC;
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+  }, [turnstileSiteKey]);
 
   function showError(nextMessage: string) {
     setMessageKind("error");
@@ -92,11 +110,19 @@ export function WaitlistForm() {
         consentVersion: "prevalidation-v2",
         channelCode,
         company: String(form.get("company") ?? ""),
+        // Turnstile 위젯이 폼에 심는 hidden input이다. 서버가 이 값을 검증한다.
+        turnstileToken: String(form.get("cf-turnstile-response") ?? ""),
       }),
     }).catch(() => null);
     setBusy(null);
 
     if (!response?.ok) {
+      // 403은 사람 확인 실패다. 위젯 토큰은 1회용이므로 재시도 전에 초기화한다.
+      if (response?.status === 403) {
+        window.turnstile?.reset();
+        showError("사람 확인에 실패했습니다. 확인란을 다시 진행한 뒤 시도해 주세요.");
+        return;
+      }
       showError("등록하지 못했습니다. 잠시 후 다시 시도해 주세요.");
       return;
     }
@@ -280,6 +306,14 @@ export function WaitlistForm() {
             이메일 · 출시 알림 및 초기 테스트 안내 · 확인 전 14일, 확인 후 최대 12개월
           </span>
         </label>
+        {turnstileSiteKey ? (
+          <div
+            className="cf-turnstile"
+            data-sitekey={turnstileSiteKey}
+            data-appearance="interaction-only"
+            data-language="ko"
+          />
+        ) : null}
         <button className="submit-button" type="submit" disabled={busy !== null}>
           {busy === "waitlist" ? "등록 중…" : "출시 알림 신청하기"}
         </button>

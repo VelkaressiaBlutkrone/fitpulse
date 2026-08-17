@@ -7,7 +7,7 @@
 | Workflow ID | WF-02 |
 | Parent Task | TASK-0001 |
 | Parent Step | STEP-02 |
-| Status | Draft |
+| Status | Done |
 | Owner | 개인사업자 본인 |
 | Created At | 2026-08-17 |
 | Updated At | 2026-08-17 |
@@ -16,7 +16,7 @@
 | Pull Request | 미생성 |
 | Related Issue | N/A — 이슈 트래커를 사용하지 않음 |
 | Dependencies | WF-01 |
-| Affected Paths | `landing/app/lib/api-handlers.ts`, `landing/app/lib/input.ts`, `landing/app/components/WaitlistForm.tsx`, `landing/worker/index.ts`, `landing/worker/wrangler.jsonc`, `landing/tests/` |
+| Affected Paths | `landing/app/lib/turnstile.ts`(신규), `landing/app/lib/api-handlers.ts`, `landing/app/lib/input.ts`, `landing/app/api/waitlist/route.ts`, `landing/app/components/WaitlistForm.tsx`, `landing/app/page.tsx`, `landing/worker/index.ts`, `landing/tests/rendered-html.test.mjs` |
 | Decision References | `ADR-20260814-002`, WF-01 산출 ADR |
 | Rule References | `CLAUDE.md` 절대 조건 2, `docs/claude/04-validation-checklists.md` |
 
@@ -67,21 +67,46 @@ WF-01에서 선정한 남용 방어 수단을 대기자 등록·설문·삭제 �
 - 실제 사이트 키·시크릿 키를 저장소에 커밋하지 않는다.
 - 방어 수단이 방문자 데이터를 제3국으로 전송하면 그 사실을 고지 문구 초안에 반영한다.
 
+## 설계 결정
+
+2026-08-17 소유자 선택으로 확정했다.
+
+### 결정 1 — siteverify 엔드포인트를 환경변수로 주입한다
+
+`siteverify` URL을 Worker 환경변수 `TURNSTILE_VERIFY_URL`로 두고, 기본값은 Cloudflare 실제 엔드포인트(`https://challenges.cloudflare.com/turnstile/v0/siteverify`)로 한다. 자동 테스트에서만 로컬 스텁 서버를 가리키도록 `wrangler dev --var`로 덮어쓴다.
+
+- 채택 이유: 테스트가 외부 네트워크에 의존하지 않아 결정적이고, Cloudflare 장애가 CI를 깨뜨리지 않는다.
+- **대가**: 실제 Cloudflare 응답 계약(응답 필드, 오류 코드)은 자동 테스트로 검증되지 않는다. 수동 QA에서 실제 키로 확인하고 그 결과를 기록한다.
+- 배제한 대안: Cloudflare 공식 테스트 키로 실제 호출 — 계약까지 검증되나 CI가 외부 네트워크에 의존한다.
+
+### 결정 2 — 검증 실패는 403으로 명시적으로 거부한다
+
+기존 허니팟(`company` 필드)은 봇에게 202로 위장 응답하고 저장만 생략한다. Turnstile 검증 실패는 이와 다르게 **403으로 명시적으로 거부**한다.
+
+- 채택 이유: 위젯 만료 등으로 실패한 실제 사용자가 재시도해야 하는데, 202로 위장하면 등록된 줄 알고 이탈한다. 토큰 유효성은 이메일 존재 여부와 무관하므로 403이 정보를 노출하지 않는다.
+- 응답 본문은 오류 코드만 담고 Cloudflare가 반환한 `error-codes` 원문을 그대로 노출하지 않는다.
+
+### 결정 3 — 시크릿 미설정 시 fail-closed
+
+`TURNSTILE_SECRET_KEY`가 설정되지 않은 환경에서는 등록 요청을 **거부**한다(503). 설정 누락은 운영 오류이며, 방어가 꺼진 채로 공개되는 것보다 등록이 실패하는 편이 안전하다.
+
+이 결정으로 기존 통합 테스트가 시크릿 없이는 실패하게 된다. 기존 테스트에 시크릿·스텁 주입을 추가하는 것이 이 Workflow의 범위에 포함된다.
+
 ## Execution Checklist
 
 | Order | Item | Applicable | Status | Evidence | Commit |
 |---|---|---|---|---|---|
-| 01 | 요구사항 정제 | Yes | Draft | - | - |
-| 02 | 보안 모델 | Yes | Draft | - | - |
+| 01 | 요구사항 정제 | Yes | Done | 설계 결정 3건 기록 | - |
+| 02 | 보안 모델 | Yes | Done | fail-closed, 403 거부, `error-codes` 미노출, CSP 출처 한정 | - |
 | 03 | ERD / 데이터 | No | N/A — 새 테이블·컬럼을 만들지 않음 | - | - |
-| 04 | API Contract | Yes | Draft | - | - |
-| 05 | DTO | Yes | Draft | - | - |
+| 04 | API Contract | Yes | Done | `turnstileToken` 필드 추가, 403·503 응답 규약 | - |
+| 05 | DTO | Yes | Done | `WaitlistInput.turnstileToken`, `TurnstileConfig`·`TurnstileResult` | - |
 | 06 | Domain | No | N/A — 도메인 규칙 변경 없음. 요청 수용 조건만 추가 | - | - |
-| 07 | Service | Yes | Draft | - | - |
-| 08 | Controller | Yes | Draft | - | - |
-| 09 | View / Client | Yes | Draft | - | - |
-| 10 | Test | Yes | Draft | - | - |
-| 11 | 문서 / HISTORY | Yes | Draft | - | - |
+| 07 | Service | Yes | Done | `app/lib/turnstile.ts` 신규 | - |
+| 08 | Controller | Yes | Done | `api-handlers.ts`, `api/waitlist/route.ts`, `worker/index.ts` | - |
+| 09 | View / Client | Yes | Done | `WaitlistForm.tsx` 위젯·토큰 전달, `page.tsx` sitekey 주입 | - |
+| 10 | Test | Yes | Done | 통합 테스트 12개 통과 (신규 4개 포함) | - |
+| 11 | 문서 / HISTORY | Yes | Done | 이 문서와 HISTORY 갱신 | - |
 
 ## Expected Output
 
@@ -103,13 +128,60 @@ WF-01에서 선정한 남용 방어 수단을 대기자 등록·설문·삭제 �
 
 | Type | Command or Method | Expected | Actual | Status |
 |---|---|---|---|---|
-| Test | `cd landing && npm test` | 신규 테스트 포함 전체 통과 | 미실행 | Not Run |
-| Lint | `cd landing && npm run lint` | 오류 0 | 미실행 | Not Run |
-| Audit | `cd landing && npm audit --omit=dev --audit-level=high` | high 이상 0 | 미실행 | Not Run |
-| Manual | 로컬 `npm run preview`에서 토큰 없이 등록 시도 | 서버가 거부 | 미실행 | Not Run |
-| Manual | D1 `landing_events` 저장 행 조회로 토큰·식별자 부재 검산 | 0건 | 미실행 | Not Run |
-| Manual | 375×812 뷰포트에서 방어 위젯 포함 폼 제출 흐름 | 제출 성공, 가로 넘침 없음 | 미실행 | Not Run |
-| Security | `git diff`에서 시크릿·키 문자열 검색 | 0건 | 미실행 | Not Run |
+| Test | `cd landing && npm test` | 신규 테스트 포함 전체 통과 | **12개 전부 통과** (기존 8 + 신규 4) | Passed |
+| Lint | `cd landing && npm run lint` | 오류 0 | 출력 없음 (오류 0) | Passed |
+| Audit | `cd landing && npm audit --omit=dev --audit-level=high` | high 이상 0 | `found 0 vulnerabilities` | Passed |
+| Test | 토큰 누락 요청 거부 | 403 `turnstile_required`, siteverify 미호출 | 통과 | Passed |
+| Test | 위조 토큰 거부 | 403 `turnstile_failed` | 통과 | Passed |
+| Test | 만료 토큰 거부 | 403 `turnstile_failed` | 통과 | Passed |
+| Test | 유효 토큰 수용 | 202, siteverify 1회 호출 | 통과 | Passed |
+| Test | 응답에 `error-codes` 원문 미노출 | 0건 | 통과 | Passed |
+| Test | 허니팟 요청이 siteverify를 호출하지 않음 | 0회 | 통과 | Passed |
+| Test | CSP가 방어 출처만 좁게 허용 | `script-src`·`frame-src`에만 추가 | 통과 | Passed |
+| Test | 폼이 `cf-turnstile-response`를 전달하고 시크릿을 담지 않음 | 일치 | 통과 | Passed |
+| Security | `git diff`에서 시크릿·키 문자열 검색 | 0건 | 0건 | Passed |
+| Manual | 실제 `challenges.cloudflare.com`에 "항상 통과" 테스트 키로 요청 | 실제 응답 `success: true` → 202 | 202 `{"accepted":true}` | **Passed** |
+| Manual | 실제 `challenges.cloudflare.com`에 "항상 거부" 테스트 키로 요청 | 실제 응답 `success: false` → 403 `turnstile_failed` | 403 `{"error":"turnstile_failed"}` | **Passed** |
+| Manual | 시크릿 주입 상태에서 토큰 누락 요청 | 403 `turnstile_required` (siteverify 미호출) | 403 `{"error":"turnstile_required"}` | **Passed** |
+| Manual | 시크릿 미주입 상태에서 등록 요청 (fail-closed) | 503 `verification_unavailable` | 503 `{"error":"verification_unavailable"}` | **Passed** |
+| Manual | 렌더링된 HTML에 위젯과 sitekey 포함 | `cf-turnstile`, `data-sitekey` | 둘 다 확인 | **Passed** |
+| Manual | 375×812 실기기 뷰포트에서 위젯 상호작용·폼 제출 | 제출 성공, 가로 넘침 없음 | 미실행 | **Not Run — 브라우저 실기기 QA 미수행** |
+| Test | D1 저장 행 조회로 토큰 문자열 부재 검산 | `landing_events`·`waitlist_entries` 0건 | 통과 | Passed |
+| Test | 허니팟 요청이 저장되지 않음 검산 | `waitlist_entries` 0건 | 통과 | Passed |
+| Security | `.dev.vars`가 git에서 무시되는지 확인 | 무시됨 | `git check-ignore` 확인, `git status`에 미표시 | Passed |
+
+### 구현 중 발견해 함께 고친 것
+
+`landing/.gitignore`가 `.env*`만 무시하고 **`.dev.vars`는 무시하지 않았다.** `.dev.vars`는 Wrangler가 로컬 시크릿을 읽는 표준 파일명이므로, 실제 Turnstile secret key를 넣는 순간 커밋될 위험이 있었다. `.dev.vars`와 `.dev.vars.*`를 무시 목록에 추가했다.
+
+이 Workflow가 로컬 시크릿 파일을 처음 필요로 하게 만들었으므로 같은 변경 단위로 처리했다.
+
+### 실제 siteverify 응답 계약 검증 방법
+
+설계 결정 1의 대가로 남겨두었던 "실제 Cloudflare 응답 계약 미검증" 항목을 **Cloudflare 공개 테스트 키로 해소했다.** 이 키들은 문서에 공개된 값이며 비밀정보가 아니다.
+
+| 키 | 값 | 동작 |
+|---|---|---|
+| 항상 통과 secret | `1x0000000000000000000000000000000AA` | 어떤 토큰이든 `success: true` |
+| 항상 거부 secret | `2x0000000000000000000000000000000AA` | 어떤 토큰이든 `success: false` |
+
+로컬 재현 명령이다. `TURNSTILE_VERIFY_URL`을 주지 않으므로 **실제 `challenges.cloudflare.com`으로 요청이 나간다.**
+
+~~~powershell
+npm run build
+npm run db:migrate:local
+node node_modules/wrangler/bin/wrangler.js dev --config dist/server/wrangler.json --local `
+  --var TURNSTILE_SITE_KEY:1x00000000000000000000AA `
+  --var TURNSTILE_SECRET_KEY:1x0000000000000000000000000000000AA
+~~~
+
+**주의**: `landing/.dev.vars` 파일이 존재하면 `--var` 주입이 무효화되어 시크릿이 비어 있는 것처럼 동작한다(503). 이 조건은 관찰로 확인했으나 Wrangler 내부 동작까지는 규명하지 못했다. 로컬 QA 시 `.dev.vars`를 두지 말고 `--var`를 쓴다. `package.json`의 `start` 스크립트는 원래대로 두었다.
+
+### 미실행 검증이 남은 이유
+
+- 375×812 실기기 뷰포트에서 위젯을 실제로 상호작용하는 QA는 수행하지 않았다. 렌더링된 HTML에 위젯과 sitekey가 들어가는 것까지만 확인했다.
+- 운영 sitekey·secret key 발급과 Cloudflare Secret 주입은 배포 시점 작업이며 이 Workflow 범위 밖이다.
+- 남은 항목은 WF-06 공개 판정의 입력이다.
 
 ## Done When
 
@@ -127,3 +199,6 @@ WF-01에서 선정한 남용 방어 수단을 대기자 등록·설문·삭제 �
 | Date | Status | Commit | PR | Description |
 |---|---|---|---|---|
 | 2026-08-17 | Draft | - | - | Workflow 생성 |
+| 2026-08-17 | In Progress | - | - | 설계 결정 3건(검증 URL 주입, 403 거부, fail-closed) 확정 후 실패 테스트 선작성 |
+| 2026-08-17 | Review | - | - | 서버 검증·클라이언트 위젯·CSP 구현 완료. `npm test` 12개, lint, audit 통과 |
+| 2026-08-17 | Done | - | - | Cloudflare 공개 테스트 키로 실제 `challenges.cloudflare.com` 응답 계약을 양방향 검증(통과 202 / 거부 403). `.dev.vars` gitignore 누락을 함께 수정. 실기기 뷰포트 QA 1건만 Not Run |

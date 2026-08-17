@@ -6,6 +6,11 @@ import {
 } from "../../db/landing-storage";
 import { parseMetricInput, parseSurveyInput, parseWaitlistInput } from "./input";
 import {
+  statusForTurnstileFailure,
+  verifyTurnstileToken,
+  type TurnstileConfig,
+} from "./turnstile";
+import {
   clearSessionCookie,
   createSessionToken,
   readCookie,
@@ -43,7 +48,11 @@ async function readJson(request: Request) {
   }
 }
 
-export async function handleWaitlistPost(request: Request, db: D1Database) {
+export async function handleWaitlistPost(
+  request: Request,
+  db: D1Database,
+  turnstile: TurnstileConfig,
+) {
   const body = await readJson(request);
   if (!body.ok) return body.response;
 
@@ -51,7 +60,18 @@ export async function handleWaitlistPost(request: Request, db: D1Database) {
   if (!parsed.ok) return json({ error: parsed.error }, 400);
 
   const sessionToken = createSessionToken();
+  // 허니팟에 걸린 요청은 조용히 수용한 척하고 저장하지 않는다.
+  // siteverify 호출도 아껴 봇이 검증 한도를 소모하지 못하게 한다.
   if (parsed.value.bot) return acceptedResponse(request, sessionToken);
+
+  const verification = await verifyTurnstileToken(
+    parsed.value.turnstileToken,
+    turnstile,
+    request.headers.get("cf-connecting-ip"),
+  );
+  if (!verification.ok) {
+    return json({ error: verification.error }, statusForTurnstileFailure(verification.error));
+  }
 
   try {
     await storeWaitlist(db, parsed.value, sessionToken);
@@ -109,7 +129,11 @@ export async function handleEventsPost(request: Request, db: D1Database) {
   }
 }
 
-export function handleApiWrite(request: Request, db: D1Database) {
+export function handleApiWrite(
+  request: Request,
+  db: D1Database,
+  turnstile: TurnstileConfig,
+) {
   const { pathname } = new URL(request.url);
   if (pathname === "/api/events" && request.method === "POST") {
     return handleEventsPost(request, db);
@@ -118,7 +142,7 @@ export function handleApiWrite(request: Request, db: D1Database) {
     return handleSurveyPost(request, db);
   }
   if (pathname === "/api/waitlist" && request.method === "POST") {
-    return handleWaitlistPost(request, db);
+    return handleWaitlistPost(request, db, turnstile);
   }
   if (pathname === "/api/waitlist" && request.method === "DELETE") {
     return handleWaitlistDelete(request, db);
