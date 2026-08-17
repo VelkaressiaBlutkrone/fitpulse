@@ -7,6 +7,7 @@
 | 2026-08-17 | Workflow | WF-01 | Ready | workflow/TASK-0005-WF-01-adr-supersede | - | - | Not Run | Workflow 문서 생성 |
 | 2026-08-17 | Workflow | WF-02 | Ready | workflow/TASK-0005-WF-02-reference-updates | - | - | Not Run | Workflow 문서 생성 |
 | 2026-08-17 | Workflow | WF-03 | Ready | workflow/TASK-0005-WF-03-claude-md-build-section | - | - | Not Run | Workflow 문서 생성 |
+| 2026-08-17 | Task | TASK-0005 | Ready | task/TASK-0005-product-build-stage | - | - | N/A — 문서 변경 | Scope 변경: 구 O-6(핸드오프 상태 표기)을 세션 핸드오프 작업으로 이관하고 AC-16 폐기. 소유자의 "핸드오프 기재 → 다음 세션 이관" 지시에 따름 |
 
 ## 기록해야 할 사건과 현재 상태
 

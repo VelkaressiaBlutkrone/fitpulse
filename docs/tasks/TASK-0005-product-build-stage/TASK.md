@@ -75,7 +75,7 @@
 - `docs/README.md`의 단계 표기, 승인 상태, 다음 작업, 시작 위치 갱신
 - `CLAUDE.md` 빌드·테스트 절에 모듈별 존재 여부와 `landing/` 검증 명령 **보완** (기존 문장 삭제 없음)
 - `docs/tasks/TASK-0004-landing-public-release-decision/TASK.md`의 Decision References에 ADR-005 추가
-- `docs/HANDOFF-20260817.md`의 상태 표기를 완료로 변경 — **Spec 확정 후 추가된 항목(O-6)**
+*(O-6 `docs/HANDOFF-20260817.md` 상태 표기는 이 TASK의 범위에서 제외되었다. 아래 Excluded 참조.)*
 
 ### Excluded
 
@@ -87,6 +87,7 @@
 - `wiki/` 문서 수정 — 역사 자료로 유지하며 이번에 손대지 않는다
 - `docs/plans/`의 실행 계획과 `docs/design/`의 설계서 2건 — 랜딩 트랙 기준이며 유효하다
 - `landing/` 코드·테스트 — 변경하지 않는다
+- **`docs/HANDOFF-20260817.md` 상태 표기 (구 O-6)** — 2026-08-17 세션 핸드오프 작업에서 처리했다. 계획 수립 중 참조처 실측으로 발견해 O-6으로 넣었으나, 같은 세션에서 핸드오프를 새로 쓰게 되어 그쪽으로 옮겼다. 이 TASK가 실행될 때는 이미 완료된 상태여야 한다. 아니라면 `docs/HANDOFF-20260817.md`의 Status를 확인하고 필요 시 이 TASK로 되돌린다
 
 ## Acceptance Criteria
 
@@ -105,7 +106,7 @@
 - [ ] AC-13: `CLAUDE.md` 빌드·테스트 절이 모듈별 존재 여부와 `landing/`의 실제 검증 명령을 명시하고, `backend/`·`app/`·`admin/`이 아직 생성되지 않았음과 신설 시 갱신 규칙을 담는다. 표의 명령은 `landing/package.json`·`.github/workflows/landing.yml`에서 확인한 것과 일치하며 추측이 없다.
 - [ ] AC-14: `CLAUDE.md` 빌드·테스트 절의 **기존 6개 항목이 하나도 삭제되지 않는다.** `git diff CLAUDE.md`의 삭제 행이 0건이고, 특히 141행(사전 확인)과 146행(미실행 보고 금지)이 유지된다. `CLAUDE.md`의 다른 절은 변경되지 않는다.
 - [ ] AC-15: `landing/`이 변경되지 않았고 `cd landing && npm test`가 21개 통과한다.
-- [ ] AC-16: `docs/HANDOFF-20260817.md`의 Status가 완료를 나타내고, 그 문서가 최우선으로 지목한 과제 3건의 현재 상태가 대조표로 기록된다. **본문은 고쳐 쓰지 않는다** — 시점 기록이므로 `docs/claude/01` §13에 따라 보존한다.
+*(AC-16은 폐기되었다. `docs/HANDOFF-20260817.md` 상태 표기를 2026-08-17 세션 핸드오프 작업으로 옮겼기 때문이다. 번호는 재사용하지 않는다.)*
 
 ## Dependencies
 

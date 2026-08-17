@@ -16,10 +16,10 @@
 | Pull Request | 미생성 |
 | Related Issue | N/A — 이슈 트래커를 사용하지 않음 |
 | Dependencies | WF-01 |
-| Affected Paths | `docs/README.md`, `docs/tasks/TASK-0004-landing-public-release-decision/TASK.md`, `docs/HANDOFF-20260817.md` |
+| Affected Paths | `docs/README.md`, `docs/tasks/TASK-0004-landing-public-release-decision/TASK.md` |
 | Decision References | `ADR-20260817-005`(WF-01 산출), `ADR-20260814-002` |
 | Rule References | `CLAUDE.md` 절대 조건 1·5, `docs/claude/01-task-workflow.md` §13 |
-| Spec | `docs/plans/fitpulse-product-build-stage-transition-plan-20260817.md` — O-3, O-5, O-6 |
+| Spec | `docs/plans/fitpulse-product-build-stage-transition-plan-20260817.md` — O-3, O-5 |
 
 ## Goal
 
@@ -31,7 +31,6 @@
 - Spec의 "O-3. `docs/README.md` 변경", "O-5. `TASK-0004` 변경"
 - `docs/README.md` — "현재 결론", "시작 위치", "다음 작업"
 - `docs/tasks/TASK-0004-landing-public-release-decision/TASK.md` — Metadata
-- `docs/HANDOFF-20260817.md` — 상태 표기 대상
 
 ## Scope
 
@@ -39,7 +38,6 @@
 
 - `docs/README.md`의 단계 표기, 승인 상태, 다음 작업, 시작 위치 갱신
 - `TASK-0004`의 Decision References에 `ADR-20260817-005` 추가
-- `docs/HANDOFF-20260817.md`의 상태 표기를 완료로 변경 (**Spec에 없던 O-6 추가**)
 - `ADR-20260814-002` 참조처 점검과 결과 기록
 
 ### Excluded
@@ -52,6 +50,7 @@
 - `docs/verification/` — 확인 시점의 사실 기록이다
 - `wiki/` — 역사 자료
 - `landing/` — 변경하지 않는다
+- **`docs/HANDOFF-20260817.md` (구 O-6)** — 2026-08-17 세션 핸드오프 작업으로 옮겼다. 아래 "구 O-6이 이 Workflow를 떠난 경위" 참조
 
 ## Preconditions
 
@@ -62,26 +61,22 @@
 
 - **참조처 25개를 일괄 수정하지 않는다.** 대부분이 완료된 TASK의 이력 기록이며, `docs/claude/01` §13은 이력의 임의 재작성을 금지한다. 대체 사실은 `ADR-20260814-002` 파일 자체의 머리말이 전달한다
 - **`TASK-0004`의 Scope와 Acceptance Criteria를 변경하지 않는다.** Metadata의 Decision References만 추가한다
-- **`docs/HANDOFF-20260817.md`의 본문을 고쳐 쓰지 않는다.** 시점 기록이므로 상태 표기와 후속 안내만 덧붙인다
 - 랜딩 관련 결론(소유자 전용, 공개 NO-GO)은 사실이 바뀌지 않았으므로 유지한다
 - `landing/`을 변경하지 않는다
 
-## O-6을 추가한 이유 — Spec 범위 밖 항목
+## 구 O-6이 이 Workflow를 떠난 경위
 
-Spec은 산출물 5개를 확정했고 `docs/HANDOFF-20260817.md`는 그중에 없다. 계획 수립 중 참조처를 실측하다 발견해 추가했다.
+계획 수립 중 `ADR-20260814-002` 참조처를 실측하다 `docs/HANDOFF-20260817.md`를 발견했다. 그 문서는 `Status: ACTIVE — 다음 세션이 이 문서부터 읽는다`로 시작하면서 이미 해소된 `develop` CI 실패를 최우선 과제로 적고 있어, 그대로 두면 다음 세션이 해결된 문제를 착수한다. Spec에 없던 항목이지만 O-6으로 추가했었다.
 
-그 문서는 이렇게 시작한다.
+그러나 같은 세션에서 소유자가 **"핸드오프 기재 → 다음 세션 이관"**을 지시해 새 세션 핸드오프를 작성하게 되었고, 옛 핸드오프의 상태 표기는 그 작업에 자연스럽게 포함되었다. 두 곳에서 같은 파일을 건드리면 이 Workflow가 실행될 때 이미 끝난 일을 다시 하게 되므로 여기서 제외했다.
 
-```text
-Status: ACTIVE — 다음 세션이 이 문서부터 읽는다
-## 최우선 과제 — `develop`이 CI를 통과하지 못한다
+**이 Workflow를 실행하기 전에 확인할 것**
+
+```bash
+head -5 docs/HANDOFF-20260817.md
 ```
 
-그리고 "MVP 기능 개발은 `ADR-20260814-002` 갱신이 선행"이라고 적는다. **두 사실이 모두 2026-08-17에 해소되었다.** `develop`의 CI는 PR #14로 복구되었고 ADR 갱신은 이 TASK가 수행한다.
-
-그대로 두면 다음 세션이 해결된 문제를 최우선 과제로 착수한다. 문서가 스스로를 진입점으로 지정하고 있어 무시될 가능성도 낮다.
-
-**본문을 고쳐 쓰지 않는 이유**는 `docs/claude/01` §13이다. 핸드오프는 그 시점의 판단과 미확인 사항을 담은 기록이며, 나중에 알게 된 사실로 과거 기록을 덮으면 판단 경위를 잃는다. 상태 표기와 후속 안내만 덧붙인다.
+Status가 이미 완료·대체를 나타내면 그대로 진행한다. 여전히 `ACTIVE`이면 핸드오프 작업이 병합되지 않은 것이므로, 이 Workflow의 Scope에 되돌리고 TASK와 AC를 먼저 갱신한다.
 
 ## 실행 절차
 
@@ -137,32 +132,7 @@ git diff docs/tasks/TASK-0004-landing-public-release-decision/TASK.md
 
 기대: Metadata 1행만 변경.
 
-### 4단계 — 핸드오프 문서 상태 표기
-
-`docs/HANDOFF-20260817.md`의 3행을 바꾼다.
-
-```markdown
-Status: ACTIVE — 다음 세션이 이 문서부터 읽는다
-```
-
-↓
-
-```markdown
-Status: SUPERSEDED (2026-08-17) — 이 문서가 최우선으로 지목한 두 과제는 해소되었다.
-현재 상태는 `docs/README.md`와 `docs/decisions/ADR-20260817-005-product-build-stage.md`를 본다.
-
-| 이 문서가 적은 과제 | 현재 |
-|---|---|
-| `develop`이 CI를 통과하지 못한다 | **해소.** PR #14 병합으로 lock 복구, `@emnapi` 3개 |
-| PR #11 병합 대기 | **해소.** PR #11 병합 완료 |
-| MVP는 `ADR-20260814-002` 갱신이 선행 | **진행 중.** TASK-0005가 `ADR-20260817-005`로 대체 |
-
-아래 본문은 2026-08-17 시점의 기록으로 보존한다. 갱신하지 않는다.
-```
-
-본문의 나머지는 손대지 않는다.
-
-### 5단계 — 참조처 점검
+### 4단계 — 참조처 점검
 
 ```bash
 grep -rln "ADR-20260814-002" --include="*.md" . | grep -v "^./wiki/" | wc -l
@@ -173,7 +143,7 @@ head -8 docs/decisions/ADR-20260814-002-prevalidation-lite-landing-first.md
 
 일괄 수정하지 않는 판단과 점검 결과를 아래 Validation 표에 기록한다.
 
-### 6단계 — 검증
+### 5단계 — 검증
 
 ```bash
 git diff --check; echo "CHECK_EXIT:$?"
@@ -184,17 +154,17 @@ cd landing && npm test 2>&1 | tail -8; cd ..
 
 기대: `CHECK_EXIT:0`, `landing/` 변경 0건, TASK-0004는 `TASK.md` 1파일만 변경, `tests 21 / pass 21 / fail 0`.
 
-### 7단계 — Commit, Push, PR
+### 6단계 — Commit, Push, PR
 
 ```bash
-git add docs/README.md docs/tasks/TASK-0004-landing-public-release-decision/TASK.md docs/HANDOFF-20260817.md
+git add docs/README.md docs/tasks/TASK-0004-landing-public-release-decision/TASK.md
 git diff --cached --name-status
 git diff --cached --check
 ```
 
-기대: 3개 파일만 stage.
+기대: 2개 파일만 stage.
 
-Commit 메시지에 `Task: TASK-0005`, `Workflow: WF-02`를 포함하고, **O-6이 Spec 범위 밖 추가라는 사실을 본문에 적는다.**
+Commit 메시지에 `Task: TASK-0005`, `Workflow: WF-02`를 포함하고, **참조처 25개를 일괄 수정하지 않은 판단과 그 근거를 본문에 적는다.**
 
 ```bash
 git push -u origin workflow/TASK-0005-WF-02-reference-updates
@@ -210,7 +180,7 @@ gh pr checks
 
 | Order | Item | Applicable | Status | Evidence | Commit |
 |---|---|---|---|---|---|
-| 01 | 요구사항 정제 | Yes | Ready | Spec O-3·O-5 + 실측으로 발견한 O-6 | - |
+| 01 | 요구사항 정제 | Yes | Ready | Spec O-3·O-5에서 확정 | - |
 | 02 | 보안 모델 | No | N/A — 인증·권한 경계를 변경하지 않음 | - | - |
 | 03 | ERD / 데이터 | No | N/A — 스키마 변경 없음 | - | - |
 | 04 | API Contract | No | N/A — 계약 변경 없음 | - | - |
@@ -226,7 +196,6 @@ gh pr checks
 
 - `docs/README.md` — 단계 표기, 승인 상태 4행, 시작 위치 표, 다음 작업 갱신
 - `docs/tasks/TASK-0004-landing-public-release-decision/TASK.md` — Decision References 1행 추가
-- `docs/HANDOFF-20260817.md` — 상태 표기와 해소 대조표 추가, 본문 보존
 - 갱신된 이 문서와 `HISTORY.md`
 
 ## Validation
@@ -239,7 +208,6 @@ gh pr checks
 | Manual | 랜딩 관련 결론 2행이 유지되었는지 확인 | 유지 | 미실행 | Not Run |
 | Manual | `TASK-0004` 변경이 Metadata 1행에 한정되는지 확인 | Scope·AC 변경 0건 | 미실행 | Not Run |
 | Manual | ADR-002 머리말 8행 안에서 대체 사실 확인 가능 여부 | 확인 가능 | 미실행 | Not Run |
-| Manual | 핸드오프 본문이 고쳐 쓰이지 않았는지 확인 | 본문 변경 0행 | 미실행 | Not Run |
 | Document | `git diff --check` | 경고 0건 | 미실행 | Not Run |
 | Regression | `git diff --stat -- landing/` | 변경 0건 | 미실행 | Not Run |
 | Regression | `cd landing && npm test` | 21개 통과 | 미실행 | Not Run |
@@ -250,7 +218,6 @@ gh pr checks
 - [ ] AC-10~AC-12, AC-15가 충족되었다
 - [ ] 참조처 25개를 일괄 수정하지 않았고, 그 판단 근거가 기록되었다
 - [ ] `TASK-0004`의 Scope와 AC가 변경되지 않았다
-- [ ] 핸드오프 문서의 본문이 고쳐 쓰이지 않았다
 - [ ] `landing/`이 변경되지 않았고 `npm test` 21개가 통과했다
 - [ ] 검증 명령과 결과를 실제 출력으로 기록했다
 - [ ] 보안·권한·예외 처리 검토 — N/A, 코드 변경 없음
@@ -258,10 +225,11 @@ gh pr checks
 - [ ] CI 결과를 기록했다
 - [ ] 해결되지 않은 리뷰 의견이 없다
 - [ ] Parent TASK Workflow Index를 갱신했다
-- [ ] O-6이 Spec 범위 밖 추가임을 PR과 HISTORY에 기록했다
+- [ ] 구 O-6(핸드오프 상태 표기)이 이미 처리되었음을 착수 전에 확인했다
 
 ## Change History
 
 | Date | Status | Commit | PR | Description |
 |---|---|---|---|---|
 | 2026-08-17 | Ready | - | - | Workflow 생성. 참조처 실측 중 발견한 핸드오프 문서를 O-6으로 추가 |
+| 2026-08-17 | Ready | - | - | 소유자의 "핸드오프 기재 → 다음 세션 이관" 지시로 O-6을 세션 핸드오프 작업으로 이관. 이 Workflow의 Scope에서 제외 |
