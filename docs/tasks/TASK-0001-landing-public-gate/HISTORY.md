@@ -38,6 +38,7 @@
 | 2026-08-17 | Workflow | WF-07 | Done | workflow/TASK-0001-WF-07-d1-provisioning | 93a7557 | #4 | 확인 5건 Passed, 원문 대조 3건 Not Run | PR #4 squash 병합. 플랫폼 데이터 처리 사실 기록, D1 위치 결정과 SES 국외이전 회피 근거 철회 |
 | 2026-08-17 | Workflow | WF-09 | Done | workflow/TASK-0001-WF-09-retention-without-cron | 6f7e6a2 | #6 | Landing CI Passed (1m9s), `npm test` 15개 Passed | PR #6 squash 병합. 삭제 경로 3개 확보. 배포 후 관찰 2건은 Not Run |
 | 2026-08-17 | Workflow | WF-03 | Done | workflow/TASK-0001-WF-03-email-confirmation | 841243e | #8 | Landing CI Passed (1m7s), `npm test` 20개 Passed | PR #8 squash 병합. 확인 흐름 로컬 완결. 실제 SES 연동과 실기기 QA는 Not Run |
+| 2026-08-17 | Workflow | WF-04 | Done | workflow/TASK-0001-WF-04-privacy-runbook-alignment | dca8a26 | #9 | Landing CI Passed (1m4s), `npm test` 21개 Passed | PR #9 squash 병합. 안내를 확인된 사실에 정합화, 동의 버전 v3. 배포본 검산은 Not Run |
 | 2026-08-17 | Workflow | WF-05 | In Progress | workflow/TASK-0001-WF-05-cost-cap-observability | b52ff94 | #5 | 문서 검증 Passed | PR #5 squash 병합. **비용 전제 정정과 WF-09 신설만 완료.** 월 상한 금액 결정, 감지 수단 확인, 중단 절차는 미착수 |
 
 ## 기록해야 할 사건과 현재 상태

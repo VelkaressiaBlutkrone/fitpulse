@@ -187,7 +187,7 @@ TASK의 Goal과 Scope 자체는 바꾸지 않는다. 공개 게이트 해소는 
 | STEP-02 | WF-09 | 예약 작업 없이 보존 기간 준수 | Done — 배포 후 관찰 2건 Not Run | workflow/TASK-0001-WF-09-retention-without-cron | #6 Merged | WF-07 |
 | STEP-02 | WF-03 | 이메일 확인 흐름 | Done — 실제 SES 연동 Not Run | workflow/TASK-0001-WF-03-email-confirmation | #8 Merged | WF-01, WF-07 |
 | STEP-02 | WF-05 | 비용 상한·중단 조건과 운영 계측 | Blocked — 배포 보류 (전제 정정만 완료) | workflow/TASK-0001-WF-05-cost-cap-observability | - | WF-01, WF-07 |
-| STEP-03 | WF-04 | 개인정보 안내·삭제 런북 정합화 | Review — 배포본 검산 Not Run | workflow/TASK-0001-WF-04-privacy-runbook-alignment | - | WF-02, WF-03, WF-07, WF-09 |
+| STEP-03 | WF-04 | 개인정보 안내·삭제 런북 정합화 | Done — 배포본 검산 Not Run | workflow/TASK-0001-WF-04-privacy-runbook-alignment | #9 Merged | WF-02, WF-03, WF-07, WF-09 |
 | STEP-03 | WF-06 | 공개 판정과 기준선 계측 | Blocked — 배포 보류 | workflow/TASK-0001-WF-06-public-decision-baseline | - | WF-02, WF-03, WF-04, WF-05, WF-07 |
 
 WF-08은 WF-02의 PR에서 Landing CI가 처음 실행되며 드러난 기존 결함(`package-lock.json` optional 의존성 누락)을 분리한 것이다. `docs/claude/01-task-workflow.md` §11의 "현재 TASK와 무관한 결함" 기준을 적용했다. WF-02는 CI 통과를 위해 WF-08 병합 이후로 의존이 생겼다.
