@@ -65,7 +65,7 @@
 
 ## 3. 작업 단위와 Git 흐름
 
-- **TASK**: 목표, Scope, Acceptance Criteria와 `dev` 통합을 관리하는 단위
+- **TASK**: 목표, Scope, Acceptance Criteria와 `develop` 통합을 관리하는 단위
 - **TASK Step**: TASK 내부 관리 단계. 필수 10개 필드를 가진다.
 - **WORKFLOW**: 실제 구현·검증·리뷰 단위
 - **Commit**: 하나의 논리적 변경 단위
@@ -74,9 +74,9 @@
 모든 Workflow는 하나의 Parent TASK와 하나의 Primary Parent Step을 가진다.
 
 ```text
-단순 TASK: task/TASK-* → dev
-복합 TASK: workflow/TASK-*-WF-* → task/TASK-* → dev
-Release:   dev 또는 release/* → main
+단순 TASK: task/TASK-* → develop
+복합 TASK: workflow/TASK-*-WF-* → task/TASK-* → develop
+Release:   develop 또는 release/* → main
 ```
 
 단순 TASK도 `WF-01`을 정의한다. 복합 TASK는 원칙적으로 Workflow 하나당 Branch 하나와 PR 하나를 사용한다.
@@ -97,8 +97,8 @@ Scope가 변경되면 구현보다 TASK의 Scope, Acceptance Criteria, Workflow 
 
 ## 5. 항상 적용하는 Git 규칙
 
-- `main`, `dev`에 직접 Push하지 않는다.
-- Workflow PR Base는 해당 `task/*`, Task PR Base는 `dev`이다.
+- `main`, `develop`에 직접 Push하지 않는다.
+- Workflow PR Base는 해당 `task/*`, Task PR Base는 `develop`이다.
 - TASK 또는 Workflow Branch에서 `main`으로 직접 PR을 만들지 않는다.
 - 하나의 Branch에서 여러 TASK를 처리하지 않는다.
 - 복합 TASK의 Task Branch에는 최초 계획과 Workflow PR 병합 결과만 반영한다.
@@ -122,7 +122,7 @@ Scope가 변경되면 구현보다 TASK의 Scope, Acceptance Criteria, Workflow 
 git reset --hard
 git clean -fd / -fdx
 git push --force
-main·dev 직접 Push
+main·develop 직접 Push
 사용자 변경의 임의 stash·삭제·덮어쓰기
 공유 Branch 이력 재작성
 --no-verify 및 필수 Check 우회

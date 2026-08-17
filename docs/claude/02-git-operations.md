@@ -68,19 +68,19 @@ Reservation_Duplicate_Check
 ### 단순 TASK
 
 ```text
-task/TASK-* → dev
+task/TASK-* → develop
 ```
 
 ### 복합 TASK
 
 ```text
-workflow/TASK-*-WF-* → task/TASK-* → dev
+workflow/TASK-*-WF-* → task/TASK-* → develop
 ```
 
 ### Release
 
 ```text
-dev 또는 release/* → main
+develop 또는 release/* → main
 ```
 
 일반 TASK 작업에서 `main`으로 직접 연결하지 않는다.
@@ -92,7 +92,7 @@ dev 또는 release/* → main
 ```bash
 git worktree add ../repo-TASK-0123 \
   -b task/TASK-0123-reservation-duplicate-check \
-  origin/dev
+  origin/develop
 ```
 
 Workflow Worktree 예:
@@ -109,8 +109,8 @@ git worktree add ../repo-TASK-0123-WF-02 \
 
 ```bash
 git fetch origin --prune
-git switch dev
-git pull --ff-only origin dev
+git switch develop
+git pull --ff-only origin develop
 git switch -c task/TASK-0123-reservation-duplicate-check
 ```
 
@@ -332,7 +332,7 @@ git diff --stat \
   origin/task/TASK-0123-reservation-duplicate-check...HEAD
 ```
 
-Task Branch는 Base를 `origin/dev`로 바꿔 확인한다.
+Task Branch는 Base를 `origin/develop`로 바꿔 확인한다.
 
 확인 항목:
 
@@ -372,7 +372,7 @@ git push --force-with-lease
 
 ```bash
 git push --force
-git push origin HEAD:dev
+git push origin HEAD:develop
 git push origin HEAD:main
 ```
 
