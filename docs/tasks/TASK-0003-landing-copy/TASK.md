@@ -135,7 +135,7 @@ TASK-0001 WF-03에서 더블 옵트인을 넣었다. 이제 등록만으로는 �
 | Manual | FAQ와 개인정보 안내 대조 (AC-07) | 모순 0건 | **3건 중 2건 일치, 1건 불일치 발견 후 정정.** 정정 후 모순 0건 | Passed |
 | Manual | `page.tsx` 자동 병합 결과 검수 | 양쪽 의도 보존 | TASK-0003 카피(확인 고지·FAQ 7개)와 TASK-0001 `turnstileSiteKey` 주입이 모두 보존됨 | Passed |
 | Document | `git diff --check` | 경고 없음 | 경고 0건 | Passed |
-| CI | `.github/workflows/landing.yml` | Landing CI 통과 | 최신화 직후 실행분 `verify` **Passed (1m1s)**. 문구 정정분은 재실행 확인 필요 | Passed / 재확인 대기 |
+| CI | `.github/workflows/landing.yml` | Landing CI 통과 | 최신화 직후 `verify` **Passed (1m1s)**, run 32017972168. 문구 정정 후 재실행분도 **Passed (1m1s)**, run 32018915510 | Passed |
 
 1차 검증의 `tests 8`은 `develop` 기준이었고, TASK-0001 병합으로 13개가 더해져 21개가 되었다. 이 TASK가 추가한 단언은 기존 랜딩 렌더 테스트 안에 있다.
 
