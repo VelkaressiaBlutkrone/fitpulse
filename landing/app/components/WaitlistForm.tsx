@@ -107,7 +107,7 @@ export function WaitlistForm({ turnstileSiteKey }: { turnstileSiteKey?: string }
       body: JSON.stringify({
         email: String(form.get("email") ?? ""),
         consent: form.get("consent") === "on",
-        consentVersion: "prevalidation-v2",
+        consentVersion: "prevalidation-v3",
         channelCode,
         company: String(form.get("company") ?? ""),
         // Turnstile 위젯이 폼에 심는 hidden input이다. 서버가 이 값을 검증한다.

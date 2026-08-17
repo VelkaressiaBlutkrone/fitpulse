@@ -110,7 +110,7 @@ function waitlistPayload(overrides = {}) {
   return {
     email: `test-${Date.now()}@example.com`,
     consent: true,
-    consentVersion: "prevalidation-v2",
+    consentVersion: "prevalidation-v3",
     channelCode: "direct",
     company: "",
     turnstileToken: VALID_TURNSTILE_TOKEN,
@@ -279,13 +279,54 @@ test("publishes the versioned privacy notice with deletion and log disclosure", 
   assert.equal(response.status, 200);
 
   const html = await response.text();
-  assert.match(html, /prevalidation-v2/);
+  assert.match(html, /prevalidation-v3/);
   assert.match(html, /mailto:info@leva\.ai\.kr/);
-  assert.match(html, /OpenAI Sites/);
-  assert.match(html, /Cloudflare D1/);
   assert.match(html, /IP 주소/);
   assert.match(html, /등록 취소 및 데이터 삭제/);
-  assert.match(html, /14일/);
+
+  // 수탁자를 빠짐없이 밝힌다. WF-01·WF-02·WF-07에서 확인한 사실이다.
+  assert.match(html, /OpenAI/);
+  assert.match(html, /재위탁/);
+  assert.match(html, /Cloudflare/);
+  assert.match(html, /Amazon Web Services/);
+  assert.match(html, /보안·안전 분류기/);
+
+  // 불리한 사실을 감추지 않는다.
+  assert.match(html, /저장 국가를 특정해 알려드릴 수 없습니다/);
+  assert.match(html, /최대 30일 남을 수 있으며/);
+  assert.match(html, /예약 작업\(cron\)을 지원하지 않아/);
+  assert.match(html, /소유자 전용 검증 상태/);
+
+  // 보유 기간이 landing-storage.ts 상수와 일치해야 한다.
+  assert.match(html, /확인되지 않은 이메일은 14일/);
+  assert.match(html, /최대 365일/);
+  assert.match(html, /요청 제한 기록은 1시간/);
+
+  // 실제보다 넓은 수집·활용을 허용하는 문구가 없어야 한다.
+  assert.doesNotMatch(html, /마케팅 활용|제3자 제공|광고 목적/);
+});
+
+test("keeps the privacy notice aligned with retention constants in code", async () => {
+  const [notice, storage] = await Promise.all([
+    readFile(new URL("../app/privacy/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../db/landing-storage.ts", import.meta.url), "utf8"),
+  ]);
+
+  const pendingDays = storage.match(/PENDING_RETENTION_DAYS\s*=\s*(\d+)/)?.[1];
+  const dataDays = storage.match(/DATA_RETENTION_DAYS\s*=\s*(\d+)/)?.[1];
+  assert.ok(pendingDays && dataDays, "보존 상수를 읽어야 한다");
+
+  assert.ok(
+    notice.includes(`${pendingDays}일`),
+    `안내가 미확인 보존 ${pendingDays}일을 명시해야 한다`,
+  );
+  assert.ok(
+    notice.includes(`${dataDays}일`),
+    `안내가 일반 보존 ${dataDays}일을 명시해야 한다`,
+  );
+
+  // 확인 토큰 만료도 미확인 보존 기간과 같아야 한다.
+  assert.match(storage, new RegExp(`isoAfter\\(now, PENDING_RETENTION_DAYS\\)`));
 });
 
 test("rejects invalid and cross-site write requests before persistence", async () => {
@@ -295,7 +336,7 @@ test("rejects invalid and cross-site write requests before persistence", async (
     body: JSON.stringify({
       email: "person@example.com",
       consent: false,
-      consentVersion: "prevalidation-v2",
+      consentVersion: "prevalidation-v3",
     }),
   });
   assert.equal(missingConsent.status, 400);
@@ -311,7 +352,7 @@ test("rejects invalid and cross-site write requests before persistence", async (
     body: JSON.stringify({
       email: "not-an-email",
       consent: true,
-      consentVersion: "prevalidation-v2",
+      consentVersion: "prevalidation-v3",
     }),
   });
   assert.equal(invalidEmail.status, 400);
@@ -554,7 +595,7 @@ test("uses native form validation and exposes accessible server errors", async (
   assert.match(form, /checked=\{interviewOptIn\}/);
   assert.match(form, /setInterviewOptIn\(event\.currentTarget\.checked\)/);
   assert.doesNotMatch(form, /interviewOptIn:\s*form\.get/);
-  assert.match(form, /consentVersion:\s*"prevalidation-v2"/);
+  assert.match(form, /consentVersion:\s*"prevalidation-v3"/);
   assert.doesNotMatch(form, /trackEvent\([^\n]*email/i);
   assert.doesNotMatch(form, /URLSearchParams\([^\n]*email/i);
 

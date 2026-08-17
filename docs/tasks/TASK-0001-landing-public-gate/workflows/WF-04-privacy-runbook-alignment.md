@@ -7,7 +7,7 @@
 | Workflow ID | WF-04 |
 | Parent Task | TASK-0001 |
 | Parent Step | STEP-03 |
-| Status | Draft |
+| Status | Review — 배포본 검산 Not Run |
 | Owner | 개인사업자 본인 |
 | Created At | 2026-08-17 |
 | Updated At | 2026-08-17 |
@@ -15,7 +15,7 @@
 | Branch | workflow/TASK-0001-WF-04-privacy-runbook-alignment |
 | Pull Request | 미생성 |
 | Related Issue | N/A — 이슈 트래커를 사용하지 않음 |
-| Dependencies | WF-02, WF-03 |
+| Dependencies | WF-02, WF-03, WF-07, WF-09 |
 | Affected Paths | `landing/app/privacy/page.tsx`, `landing/README.md`, `docs/runbooks/fitpulse-landing-data-deletion-retention.md`, `docs/verification/`(신규), `landing/tests/` |
 | Decision References | `ADR-20260814-002` 최소 운영 기준, WF-01 산출 ADR |
 | Rule References | `docs/README.md` 산출물 위치·저장 금지 정보, `docs/claude/04-validation-checklists.md` |
