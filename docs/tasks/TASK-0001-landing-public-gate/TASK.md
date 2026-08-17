@@ -62,6 +62,7 @@
 ### Included
 
 - 이메일 확인·발송 공급자와 남용 방어 수단의 사실 확인·선정, 결과의 ADR 기록
+- 프로덕션 D1 데이터베이스 생성과 위치 확인 (WF-01 조사에서 부재가 확인되어 추가된 범위)
 - Cloudflare D1과 호스팅의 실제 데이터 처리 국가, 수탁 범위, 로그·백업 보존 기간 확인
 - 공개 트래픽 대상 남용 방어의 서버 측 검증 구현
 - 이메일 확인(더블 옵트인) 흐름 구현과 기존 14일 만료 정책 연동
@@ -85,6 +86,9 @@
 ## Acceptance Criteria
 
 - [ ] AC-01: 이메일 확인·발송 공급자, 데이터 처리 국가, 수탁 범위, 로그·백업 보존 기간이 확인 출처와 확인일과 함께 `docs/decisions/`의 ADR에 기록되어 있다.
+- [ ] AC-13: 프로덕션 D1이 위치 힌트 `apac`으로 생성되고, `wrangler d1 info`로 확인한 **실제 배치 위치**와 `wrangler d1 time-travel info`로 확인한 복원 가능 기간이 `docs/verification/`에 기록되어 있다.
+- [ ] AC-14: `landing/worker/wrangler.jsonc`의 `database_id`가 실제 값이며, 원격 D1에 마이그레이션이 적용되어 4개 테이블이 존재한다.
+- [ ] AC-15: AWS 프로덕션 액세스 승인 상태가 기록되어 있고, 승인 전에는 대기자 발송이 불가능하다는 사실이 공개 판정에 반영되어 있다.
 - [ ] AC-02: 남용 방어 토큰이 없거나 위조·만료된 대기자 등록 요청을 서버가 거부하고, 해당 거부를 확인하는 자동 테스트가 `npm test`에서 통과한다.
 - [ ] AC-03: 확인되지 않은 이메일은 대기자 집계 질의 결과에 포함되지 않으며, 이를 확인하는 자동 테스트가 통과한다.
 - [ ] AC-04: 미확인 항목 14일 만료 삭제와 일일 예약 작업이 확인 흐름 도입 후에도 회귀 없이 동작하며, 이를 확인하는 자동 테스트가 통과한다. (신규 구현이 아니라 기존 구현의 회귀 확인이다.)
@@ -102,7 +106,8 @@
 - 선행 TASK: 없음
 - 외부 의존: Cloudflare 계정의 D1·Workers 실제 바인딩 정보, 선정될 이메일 발송 공급자의 계약·데이터 처리 정보
 - 환경: Node.js 22.13.0 이상, Wrangler 4.123.0
-- 미확정 입력: 이메일 발송 공급자와 남용 방어 수단은 WF-01의 산출물이며, WF-02·WF-03·WF-05의 Precondition이다.
+- 확정된 입력 (2026-08-17, `ADR-20260817-003`): 남용 방어는 **Cloudflare Turnstile Free**, 이메일 발송은 **Amazon SES `ap-northeast-2`(서울)**, D1 위치 힌트는 **`apac`**이다.
+- 외부 승인 대기: **AWS 프로덕션 액세스 승인.** SES 샌드박스는 수신자 사전 검증을 요구해 대기자 발송에 쓸 수 없다. WF-03의 Precondition이며 승인 기간이 공개 일정에 포함된다.
 
 ## Risks
 
@@ -131,14 +136,15 @@
 
 | Step | Workflow | Description | Status | Branch | PR | Dependency |
 |---|---|---|---|---|---|---|
-| STEP-01 | WF-01 | 공급자·데이터 처리 사실 확인과 선정 | In Progress | workflow/TASK-0001-WF-01-provider-selection | - | 없음 |
+| STEP-01 | WF-01 | 공급자·데이터 처리 사실 확인과 선정 | Done | workflow/TASK-0001-WF-01-provider-selection | - | 없음 |
+| STEP-01 | WF-07 | 프로덕션 D1 프로비저닝 | Draft | workflow/TASK-0001-WF-07-d1-provisioning | - | WF-01 |
 | STEP-02 | WF-02 | 공개 트래픽 남용 방어 서버 검증 | Draft | workflow/TASK-0001-WF-02-abuse-defense | - | WF-01 |
-| STEP-02 | WF-03 | 이메일 확인 흐름 | Draft | workflow/TASK-0001-WF-03-email-confirmation | - | WF-01 |
-| STEP-02 | WF-05 | 비용 상한·중단 조건과 운영 계측 | Draft | workflow/TASK-0001-WF-05-cost-cap-observability | - | WF-01 |
-| STEP-03 | WF-04 | 개인정보 안내·삭제 런북 정합화 | Draft | workflow/TASK-0001-WF-04-privacy-runbook-alignment | - | WF-02, WF-03 |
-| STEP-03 | WF-06 | 공개 판정과 기준선 계측 | Draft | workflow/TASK-0001-WF-06-public-decision-baseline | - | WF-02, WF-03, WF-04, WF-05 |
+| STEP-02 | WF-03 | 이메일 확인 흐름 | Draft | workflow/TASK-0001-WF-03-email-confirmation | - | WF-01, WF-07 |
+| STEP-02 | WF-05 | 비용 상한·중단 조건과 운영 계측 | Draft | workflow/TASK-0001-WF-05-cost-cap-observability | - | WF-01, WF-07 |
+| STEP-03 | WF-04 | 개인정보 안내·삭제 런북 정합화 | Draft | workflow/TASK-0001-WF-04-privacy-runbook-alignment | - | WF-02, WF-03, WF-07 |
+| STEP-03 | WF-06 | 공개 판정과 기준선 계측 | Draft | workflow/TASK-0001-WF-06-public-decision-baseline | - | WF-02, WF-03, WF-04, WF-05, WF-07 |
 
-WF-02·WF-03·WF-05는 서로 의존하지 않으므로 병렬 실행할 수 있다.
+WF-07은 WF-01 조사에서 프로덕션 D1 부재가 확인되어 추가되었다. WF-02는 D1 스키마에 의존하지 않으므로 WF-07과 병렬 실행할 수 있다. WF-03·WF-05는 원격 D1이 있어야 검증이 성립하므로 WF-07 이후에 진행한다.
 
 ## Steps
 

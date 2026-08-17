@@ -53,9 +53,10 @@ WF-01에서 선정한 남용 방어 수단을 대기자 등록·설문·삭제 �
 
 ## Preconditions
 
-- WF-01의 PR이 Task Branch에 병합되어 선정 수단이 확정되었다.
-- 방어 수단의 테스트용 키 또는 로컬 검증 우회 수단이 확인되어 자동 테스트를 실행할 수 있다.
-- 실제 운영 키는 Cloudflare Secret으로 주입하며 저장소에 커밋하지 않는다.
+- WF-01의 PR이 Task Branch에 병합되어 `ADR-20260817-003`이 `ACCEPTED`다. 방어 수단은 **Cloudflare Turnstile Free 플랜**으로 확정되었다.
+- 자동 테스트에는 Cloudflare가 공개한 테스트 sitekey(`1x00000000000000000000AA`)와 테스트 secret key를 사용한다. 프로덕션 secret key는 더미 토큰을 거부하므로 테스트에 쓰지 않는다.
+- 실제 sitekey·secret key는 Cloudflare Secret으로 주입하며 저장소에 커밋하지 않는다. 테스트용 공개 키는 Cloudflare 문서에 공개된 값이므로 커밋할 수 있다.
+- 이 Workflow는 원격 D1을 요구하지 않으므로 WF-07과 병렬로 진행할 수 있다.
 
 ## Constraints
 

@@ -19,6 +19,9 @@
 | 2026-08-17 | Workflow | WF-01 | Blocked | workflow/TASK-0001-WF-01-provider-selection | - | - | 공식 문서 조회 Passed | 요금·레지던시 페이지를 직접 조회해 미확인 6건 해소. Turnstile Free 무료, SES 서울 리전 지원·1,000건당 $0.16 확정. Cloudflare Email은 Workers Paid 전용 Beta로 배제 |
 | 2026-08-17 | Workflow | WF-01 | Blocked | workflow/TASK-0001-WF-01-provider-selection | - | - | 소유자 실행 확인 | **프로덕션 D1 부재 확인.** `wrangler d1 info site-creator-d1`이 계정에서 DB를 찾지 못함. 기존 검증이 전부 로컬 D1이었음이 드러남 |
 | 2026-08-17 | Task | TASK-0001 | In Progress | task/TASK-0001-landing-public-gate | - | - | Not Run | Scope 변경: 쟁점 4(D1 부재·위치 변경 불가)를 반영. TASK Risks 3건 추가, WF-06 판정 기준에서 실행 계획 88행 체크 승계 금지 |
+| 2026-08-17 | Workflow | WF-01 | Done | workflow/TASK-0001-WF-01-provider-selection | e6c64bc | - | 문서 대조 Passed | 소유자 선택으로 ADR-20260817-003 ACCEPTED. Turnstile Free, Amazon SES `ap-northeast-2`, D1 위치 `apac` 확정 |
+| 2026-08-17 | Workflow | WF-07 | Draft | workflow/TASK-0001-WF-07-d1-provisioning | - | - | Not Run | 프로덕션 D1 프로비저닝 Workflow 신설. 최초 계획에 없었으며 WF-01 조사 결과로 추가 |
+| 2026-08-17 | Task | TASK-0001 | In Progress | task/TASK-0001-landing-public-gate | - | - | Not Run | Scope 변경: WF-07 추가, AC-13~AC-15 추가, WF-03·WF-05·WF-04·WF-06 의존에 WF-07 반영 |
 
 ## 기록해야 할 사건과 현재 상태
 

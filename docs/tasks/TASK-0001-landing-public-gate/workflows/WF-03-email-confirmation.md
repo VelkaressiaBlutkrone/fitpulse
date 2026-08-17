@@ -15,7 +15,7 @@
 | Branch | workflow/TASK-0001-WF-03-email-confirmation |
 | Pull Request | 미생성 |
 | Related Issue | N/A — 이슈 트래커를 사용하지 않음 |
-| Dependencies | WF-01 |
+| Dependencies | WF-01, WF-07 |
 | Affected Paths | `landing/db/schema.ts`, `landing/db/landing-storage.ts`, `landing/drizzle/`, `landing/app/api/waitlist/route.ts`, `landing/app/lib/api-handlers.ts`, `landing/app/lib/`(확인 토큰·발송 어댑터 신규), `landing/worker/index.ts`, `landing/worker/wrangler.jsonc`, `landing/tests/` |
 | Decision References | `ADR-20260814-002`, WF-01 산출 ADR |
 | Rule References | `CLAUDE.md` 절대 조건 2, `docs/claude/04-validation-checklists.md` |
@@ -68,9 +68,11 @@
 
 ## Preconditions
 
-- WF-01의 PR이 Task Branch에 병합되어 이메일 발송 공급자가 확정되었다.
-- 공급자의 테스트 모드 또는 로컬 대체 구현으로 자동 테스트를 실행할 수 있다.
-- 실제 발송 API 키는 Cloudflare Secret으로 주입하며 저장소에 커밋하지 않는다.
+- WF-01의 PR이 Task Branch에 병합되어 `ADR-20260817-003`이 `ACCEPTED`다. 발송 공급자는 **Amazon SES, 리전 `ap-northeast-2`(서울)**로 확정되었다.
+- WF-07이 완료되어 프로덕션 D1이 존재하고 마이그레이션이 적용되어 있다.
+- **AWS 프로덕션 액세스가 승인되어 있다.** SES 샌드박스는 송신자와 수신자 주소를 모두 사전 검증해야 발송되므로, 임의 주소인 대기자 이메일에는 쓸 수 없다. 승인 전에는 이 Workflow의 실제 발송 검증을 완료할 수 없다.
+- 로컬 자동 테스트는 발송 어댑터를 대체 구현으로 주입해 실행한다. 실제 SES 호출 없이 어댑터 경계에서 검증한다.
+- 실제 발송 자격증명(AWS 액세스 키 또는 SMTP 자격증명)은 Cloudflare Secret으로 주입하며 저장소에 커밋하지 않는다.
 
 ## Constraints
 
@@ -118,7 +120,7 @@
   - `landing/drizzle/0002_*.sql` — 신규 마이그레이션 파일 (`npm run db:generate`로 생성)
 - 변경 파일
   - `landing/db/landing-storage.ts` — 토큰 저장·조회·소비, 미확인 제외 집계 질의
-  - `landing/app/lib/` — 확인 토큰 생성·해시 모듈, 이메일 발송 어댑터(공급자 종속 코드를 이 경계 안에 한정)
+  - `landing/app/lib/` — 확인 토큰 생성·해시 모듈, 이메일 발송 어댑터. **SES 종속 코드(SigV4 서명 또는 SMTP)를 이 경계 안에만 둔다.** Workers 런타임에서 AWS SDK 없이 `fetch`로 SigV4를 서명하거나 SMTP를 쓸지는 이 Workflow에서 결정하고 근거를 기록한다
   - `landing/app/api/waitlist/route.ts`, `landing/app/lib/api-handlers.ts` — 등록 시 발송, 확인 경로 처리
   - `landing/worker/wrangler.jsonc` — 발송 공급자 시크릿 참조 선언
 - 추가 테스트 (`landing/tests/`)
