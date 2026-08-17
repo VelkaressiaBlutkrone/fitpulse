@@ -4,6 +4,10 @@
 |---|---|---|---|---|---|---|---|---|
 | 2026-08-17 | Task | TASK-0003 | In Progress | task/TASK-0003-landing-copy | - | - | 문서 검토 | TASK 생성. TASK-0001에서 제외한 카피 작업을 분리 |
 | 2026-08-17 | Workflow | WF-01 | Review | task/TASK-0003-landing-copy | - | - | 검증 5건 Passed, 1건 Not Run | 카피 재정리 완료 |
+| 2026-08-17 | Task | TASK-0003 | Review | task/TASK-0003-landing-copy | - | #11 | Landing CI `verify` **Failed** | PR #11 CI가 `npm ci`에서 실패. 원인은 이 Branch가 아니라 `develop`의 lock 결손. 병합 금지 조건에 해당해 병합하지 않음 |
+| 2026-08-17 | Task | TASK-0003 | Review | task/TASK-0003-landing-copy | a9059ba | #11 | Landing CI `verify` **Passed (1m1s)** | TASK-0001 병합 후 `develop`을 병합해 최신화. Conflict 0건. `page.tsx` 자동 병합 결과를 직접 검수해 양쪽 의도 보존 확인 |
+| 2026-08-17 | Workflow | WF-01 | Done | task/TASK-0003-landing-copy | 34f4872 | #11 | Test-First 실패 확인 후 `npm test` 21개 Passed | AC-07 대조로 삭제 약속 불일치 1건 발견. 랜딩 문구를 안내에 맞추고 회귀 방지 단언 2개 추가 |
+| 2026-08-17 | Task | TASK-0003 | **Done** | task/TASK-0003-landing-copy | f7a7acc | #11 | Landing CI `verify` **Passed (1m4s)** | PR #11 squash 병합. `develop` 반영 확인 |
 
 ## 2026-08-17 — 작업 경위
 

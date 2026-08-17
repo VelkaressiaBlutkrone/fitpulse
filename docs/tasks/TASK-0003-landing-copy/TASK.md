@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Task ID | TASK-0003 |
-| Status | Review |
+| Status | Done |
 | Priority | Medium |
 | Owner | 개인사업자 본인 |
 | Created At | 2026-08-17 |
@@ -141,12 +141,20 @@ TASK-0001 WF-03에서 더블 옵트인을 넣었다. 이제 등록만으로는 �
 
 ## Definition of Done
 
-- [ ] 필수 Workflow(WF-01)가 Done이다.
-- [ ] 모든 Acceptance Criteria가 검증되었다.
-- [ ] 효능 주장과 기능 과장이 없음을 확인했다.
-- [ ] TASK와 HISTORY를 갱신했다.
-- [ ] Task PR을 `develop`으로 올렸다.
-- [ ] **개선 효과를 주장하지 않았다.** 반응 데이터가 없으므로 검증 불가함을 명시했다.
+2026-08-17 PR #11 병합 후 확정했다.
+
+- [x] 필수 Workflow(WF-01)가 Done이다.
+- [x] 모든 Acceptance Criteria가 검증되었다. — AC-01~AC-08. AC-07은 TASK-0001 병합 후 대조해 불일치 1건을 발견·정정한 뒤 충족
+- [x] 효능 주장과 기능 과장이 없음을 확인했다. — `assert.doesNotMatch(html, /의학적으로 안전|부상을 예방|회복을 보장/)`와 `/지금 바로 추천받|추천을 받아보세요|자동으로 조절해 드립니다/`가 통과
+- [x] TASK와 HISTORY를 갱신했다.
+- [x] Task PR을 `develop`으로 올렸다. — PR #11, Landing CI `verify` **Passed (1m4s)** 후 squash 병합 (`f7a7acc`)
+- [x] **개선 효과를 주장하지 않았다.** 반응 데이터가 없으므로 검증 불가함을 명시했다.
+
+### 이 TASK가 남기는 미해결 사항
+
+- **카피 변경의 효과는 측정되지 않았다.** 전환율 개선을 주장할 근거가 없다. 기준선 계측은 TASK-0004 WF-02에 있다
+- **랜딩과 개인정보 안내의 문구 일치를 자동으로 대조하지 않는다.** 추가한 테스트는 랜딩이 유보 표현을 쓰는지만 강제한다. 안내 쪽이 바뀌면 다시 어긋날 수 있다
+- **실기기·뷰포트 QA는 `Not Run`이다.** 배포가 필요하며 TASK-0004 WF-02 범위다
 
 ## FAQ와 개인정보 안내의 시차 (2026-08-17)
 
