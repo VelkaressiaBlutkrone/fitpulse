@@ -23,6 +23,9 @@
 | 2026-08-17 | Workflow | WF-07 | Draft | workflow/TASK-0001-WF-07-d1-provisioning | - | - | Not Run | 프로덕션 D1 프로비저닝 Workflow 신설. 최초 계획에 없었으며 WF-01 조사 결과로 추가 |
 | 2026-08-17 | Task | TASK-0001 | In Progress | task/TASK-0001-landing-public-gate | - | - | Not Run | Scope 변경: WF-07 추가, AC-13~AC-15 추가, WF-03·WF-05·WF-04·WF-06 의존에 WF-07 반영 |
 | 2026-08-17 | Workflow | WF-08 | Review | workflow/TASK-0001-WF-08-lockfile-integrity | - | - | lock 복구 Passed, `npm test` 8개 Passed | WF-02 PR #2에서 Landing CI 첫 실행이 `npm ci` 단계에서 실패. `package-lock.json`의 `@emnapi/core`·`@emnapi/runtime` 누락이 원인이며 WF-02와 무관한 기존 결함이라 분리 |
+| 2026-08-17 | Task | TASK-0001 | In Progress | task/TASK-0001-landing-public-gate | 55dad7c | - | N/A — 문서 변경 | 소유자 지시로 Merge Authority를 `Human-only`에서 `Auto-after-checks`로 변경. `docs/claude/03` §10 병합 금지 조건은 그대로 적용 |
+| 2026-08-17 | Workflow | WF-08 | Review | workflow/TASK-0001-WF-08-lockfile-integrity | - | #3 | Landing CI `verify` **Passed (55s)** | WF-08 PR #3에서 CI 통과 확인. lock 복구가 `npm ci` 실패를 해소함이 입증됨 |
+| 2026-08-17 | Workflow | WF-08 | In Progress | workflow/TASK-0001-WF-08-lockfile-integrity | - | #3 | N/A — Conflict 해결 | Task Branch의 Merge Authority 커밋과 HISTORY 표 행이 충돌. 양쪽 행을 모두 보존해 해결. 원인은 WF-08 병합 전에 Task Branch를 먼저 수정한 순서 오류 |
 
 ## 기록해야 할 사건과 현재 상태
 
