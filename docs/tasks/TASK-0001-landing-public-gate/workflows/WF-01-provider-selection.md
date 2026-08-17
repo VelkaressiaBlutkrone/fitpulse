@@ -7,7 +7,7 @@
 | Workflow ID | WF-01 |
 | Parent Task | TASK-0001 |
 | Parent Step | STEP-01 |
-| Status | Draft |
+| Status | Blocked — 소유자 확인 대기 |
 | Owner | 개인사업자 본인 |
 | Created At | 2026-08-17 |
 | Updated At | 2026-08-17 |
@@ -70,8 +70,8 @@
 
 | Order | Item | Applicable | Status | Evidence | Commit |
 |---|---|---|---|---|---|
-| 01 | 요구사항 정제 | Yes | Draft | - | - |
-| 02 | 보안 모델 | Yes | Draft | - | - |
+| 01 | 요구사항 정제 | Yes | Done | 실행 계획 104행 3조건을 조사 항목으로 분해 | - |
+| 02 | 보안 모델 | Yes | Done | Resend 미국 저장, Turnstile 방문자 신호 전송, D1 Time Travel 잔존을 ADR 쟁점으로 기록 | - |
 | 03 | ERD / 데이터 | No | N/A — 이 Workflow는 스키마를 변경하지 않음 | - | - |
 | 04 | API Contract | No | N/A — 외부 공급자 API 선정만 하고 연동은 WF-03 | - | - |
 | 05 | DTO | No | N/A — 코드 변경 없음 | - | - |
@@ -80,7 +80,7 @@
 | 08 | Controller | No | N/A — 코드 변경 없음 | - | - |
 | 09 | View / Client | No | N/A — 코드 변경 없음 | - | - |
 | 10 | Test | No | N/A — 코드 변경이 없어 자동 테스트 대상이 없음. 검증은 문서 대조로 수행 | - | - |
-| 11 | 문서 / HISTORY | Yes | Draft | - | - |
+| 11 | 문서 / HISTORY | Yes | In Progress | ADR 초안 작성됨. 소유자 확인 6건 미완 | - |
 
 ## Expected Output
 
@@ -98,11 +98,12 @@
 
 | Type | Command or Method | Expected | Actual | Status |
 |---|---|---|---|---|
-| Document | `git diff --check` | 의도한 Markdown hard break 외 경고 없음 | 미실행 | Not Run |
-| Manual | ADR의 각 사실 항목에 출처 URL과 확인일이 있는지 항목별 대조 | 누락 0건 | 미실행 | Not Run |
-| Manual | 실행 계획 104행의 3조건 각각이 ADR에서 확정 또는 미확인으로 판정되었는지 대조 | 3건 모두 판정됨 | 미실행 | Not Run |
-| Manual | ADR에 계약·서명·결제 식별자·API 키가 포함되지 않았는지 확인 | 0건 | 미실행 | Not Run |
-| Manual | 선정 요금제 월 비용 합계가 예산 상한 500,000원 이내인지 계산 | 이내 | 미실행 | Not Run |
+| Document | `git diff --check` | 의도한 Markdown hard break 외 경고 없음 | 경고 0건 | Passed |
+| Manual | ADR의 각 사실 항목에 출처 URL과 확인일이 있는지 항목별 대조 | 누락 0건 | 확인된 사실 4개 표 전 항목에 출처 URL 기재, 확인일 2026-08-17 명시 | Passed |
+| Manual | 실행 계획 104행의 3조건 각각이 ADR에서 확정 또는 미확인으로 판정되었는지 대조 | 3건 모두 판정됨 | 조건 1·3은 후보 확정 및 요금 미확인, 조건 2는 미확인(계정 플랜·D1 위치·호스팅 미확인) | Passed — 단 확정은 1건뿐 |
+| Manual | ADR에 계약·서명·결제 식별자·API 키가 포함되지 않았는지 확인 | 0건 | 0건. 공개 테스트 sitekey만 포함하며 비밀정보 아님 | Passed |
+| Manual | 선정 요금제 월 비용 합계가 예산 상한 500,000원 이내인지 계산 | 이내 | 산출 불가 — Turnstile 요금 미확인 | Not Run — 미확인 입력 |
+| Manual | Cloudflare 대시보드에서 계정 플랜·D1 `database_id`·`location` 확인 | 실제 값 기록 | 미실행 — 대시보드 접근 권한 없음 | Not Run — 소유자 작업 |
 
 ## Done When
 
@@ -120,3 +121,5 @@
 | Date | Status | Commit | PR | Description |
 |---|---|---|---|---|
 | 2026-08-17 | Draft | - | - | Workflow 생성 |
+| 2026-08-17 | In Progress | - | - | 공급자 공식 문서 조사 시작 |
+| 2026-08-17 | Blocked | - | - | ADR 초안 작성 완료. 소유자 확인 6건(계정 플랜, D1 `database_id`·`location`, 호스팅 위치, Turnstile 요금, Resend 채택 여부·DPA)이 미완이라 `ACCEPTED` 전환 불가. 조사에서 Resend 미국 저장과 D1 Time Travel 잔존이라는 미기록 쟁점 2건이 드러남 |

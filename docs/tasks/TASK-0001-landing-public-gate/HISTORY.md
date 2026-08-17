@@ -12,6 +12,8 @@
 | 2026-08-17 | Task | TASK-0001 | Ready | task/TASK-0001-landing-public-gate | efdd9e9 | - | 문서 검증 Passed | AC-01~AC-12, STEP-01~03, WF-01~WF-06 분할 완료. 소유자 승인 |
 | 2026-08-17 | Task | TASK-0001 | In Progress | task/TASK-0001-landing-public-gate | - | - | Not Run | WF-01 착수에 따른 상태 전이 |
 | 2026-08-17 | Workflow | WF-01 | In Progress | workflow/TASK-0001-WF-01-provider-selection | - | - | Not Run | 공급자·데이터 처리 사실 조사 시작 |
+| 2026-08-17 | Workflow | WF-01 | Blocked | workflow/TASK-0001-WF-01-provider-selection | - | - | 문서 대조 4건 Passed, 2건 Not Run | ADR-20260817-003 초안 작성. 소유자 확인 6건 미완으로 ACCEPTED 전환 불가 |
+| 2026-08-17 | Task | TASK-0001 | In Progress | task/TASK-0001-landing-public-gate | - | - | Not Run | WF-01 조사 결과로 Scope 변경: WF-04에 D1 Time Travel 잔존 기간 반영 추가, TASK Risks 2건 추가 |
 
 ## 기록해야 할 사건과 현재 상태
 

@@ -46,6 +46,7 @@
 - 삭제 요청 방법과 연락 경로를 실제 동작하는 것으로 갱신
 - 삭제·보존 런북을 WF-02·WF-03 이후 구조에 맞게 갱신
 - 삭제 흐름 실제 실행과 D1 검산, `docs/verification/`에 기록
+- **D1 Time Travel 잔존 기간 반영** (WF-01 조사에서 추가된 범위). Time Travel은 Workers Free 플랜 7일, Paid 플랜 30일의 복원 가능 기간을 만들므로, 직접 삭제 실행 후에도 그 기간 동안은 삭제 이전 시점으로 복원할 수 있다. 안내 문구의 "삭제 방법"을 실제 소멸 시점에 맞게 정정하고, `docs/README.md` 76행이 요구하는 "복구 후 삭제 재적용 절차"를 런북에 추가한다
 - `landing/README.md`의 데이터 설명 갱신
 - 안내 문구와 스키마의 불일치를 잡는 자동 테스트 검토
 
@@ -111,6 +112,8 @@
 | Manual | 안내 페이지 보유 기간과 `landing-storage.ts` 상수 대조 | 불일치 0건 | 미실행 | Not Run |
 | Manual | 안내 페이지 수탁자 목록과 WF-01 ADR 대조 | 누락 0건 | 미실행 | Not Run |
 | Manual | 등록 → 삭제 요청 실행 후 D1에서 대상 행 조회 | 대상 행 0건, 연결 설문도 0건 | 미실행 | Not Run |
+| Manual | `wrangler d1 time-travel info`로 실제 복원 가능 기간 확인 | 계정 플랜에 해당하는 기간(7일 또는 30일) 확인됨 | 미실행 | Not Run |
+| Manual | 안내 문구의 삭제 소멸 시점이 Time Travel 기간을 반영하는지 대조 | 불일치 0건 | 미실행 | Not Run |
 | Manual | 삭제 후 `landing_events`에 잔존 이벤트가 개인식별자를 포함하지 않는지 확인 | 0건 | 미실행 | Not Run |
 | Document | `git diff --check` | 의도한 Markdown hard break 외 경고 없음 | 미실행 | Not Run |
 | Document | `docs/verification/` 기록에 실제 이메일·연락처 미포함 확인 | 0건 | 미실행 | Not Run |
