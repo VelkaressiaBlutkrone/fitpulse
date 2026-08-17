@@ -133,8 +133,8 @@
 - 개인정보 위험: 이메일 발송 공급자는 이메일 주소의 수탁자가 된다. 처리 국가와 보존 기간을 확인하지 않고 공개하면 개인정보 안내가 사실과 어긋난다. WF-01 조사 결과 유력 후보인 Resend는 발송 리전과 무관하게 계정 데이터·로그를 미국에 저장하므로, 채택 시 국외 이전 고지가 필수다.
 - 개인정보 위험: D1 Time Travel이 Workers Free 플랜 7일, Paid 플랜 30일의 복원 가능 기간을 만든다. 직접 삭제를 실행해도 그 기간 동안은 삭제 이전 시점으로 복원할 수 있으므로, 안내 문구의 "삭제"와 실제 소멸 시점이 어긋난다. WF-01 조사에서 드러난 사실이며 WF-04 Scope에 반영했다.
 - 비용 위험: 공개 트래픽이 들어오면 Workers·D1·이메일 발송에 종량 비용이 발생한다. 500,000원 상한(`ADR-20260814-001`) 안에서 중단 조건이 없으면 예산 초과 위험이 있다.
-- 가용성·의무 이행 위험: 계정이 Workers Free로 확인되었다. D1 일일 한도(5,000,000 행 읽기 / 100,000 행 쓰기) 초과 시 **다음 날까지 데이터베이스가 읽기 전용**이 되어 대기자 등록과 **삭제 요청 처리가 함께 실패**한다. 삭제 요청 불이행은 개인정보 처리 의무와 직결된다. WF-05 Scope에 반영했다.
-- 관측 제약: Free 플랜은 Workers Logpush를 쓸 수 없고 Workers Logs 보존이 3일이다. 공개 후 문제를 사후 추적할 수 있는 창이 좁다.
+- **의무 이행 위험 (최상위)**: 배포 플랫폼이 **예약 작업(cron)을 지원하지 않는다.** 현재 보존 정책 전체가 `worker/index.ts` 169행의 `scheduled` 핸들러와 `"crons": ["17 3 * * *"]`에 의존하므로, 프로덕션에서 **미확인 이메일 14일 삭제와 365일 보존이 실행되지 않을 수 있다.** 개인정보 안내가 약속한 보존 기간과 실제가 어긋나게 된다. 기존 보존 테스트는 `/cdn-cgi/local/scheduled` 수동 호출로 통과한 것이라 프로덕션 동작의 근거가 아니다. WF-09를 신설해 대응한다.
+- 비용·가용성 위험: 앞서 "Workers Free 플랜 D1 읽기 전용 전환"과 "Logpush 불가·로그 3일"을 위험으로 적었으나, **이 배포에는 적용되지 않는다.** 인프라는 플랫폼이 운영하며 Workers·D1 종량 비용을 소유자가 부담하지 않는다. 대신 **Sites 플랜 사용량 한도**가 위험 요소이며 그 수치는 제품 내부에만 표시되어 아직 확인하지 못했다. WF-05에서 다룬다.
 - 문서 위험: 이 TASK의 결과가 NO-GO여도 완료로 처리한다. GO를 목표로 삼아 확인을 생략하면 `CLAUDE.md` 절대 조건 5를 위반한다.
 - 미확인 항목: Cloudflare Workers 로그와 D1 백업의 실제 보존 기간·리전은 아직 확인하지 않았다. WF-01에서 확인한다.
 
@@ -153,9 +153,10 @@
 | STEP-01 | WF-07 | 배포 플랫폼 데이터 처리 사실 확인 | Done — 원문 대조 3건 Not Run | workflow/TASK-0001-WF-07-d1-provisioning | #4 Merged | WF-01 |
 | STEP-02 | WF-08 | package-lock 무결성 복구 | Done | workflow/TASK-0001-WF-08-lockfile-integrity | #3 Merged | 없음 |
 | STEP-02 | WF-02 | 공개 트래픽 남용 방어 서버 검증 | Done | workflow/TASK-0001-WF-02-abuse-defense | #2 Merged | WF-01, WF-08 |
+| STEP-02 | WF-09 | 예약 작업 없이 보존 기간 준수 | Draft | workflow/TASK-0001-WF-09-retention-without-cron | - | WF-07 |
 | STEP-02 | WF-03 | 이메일 확인 흐름 | Draft | workflow/TASK-0001-WF-03-email-confirmation | - | WF-01, WF-07 |
 | STEP-02 | WF-05 | 비용 상한·중단 조건과 운영 계측 | Draft | workflow/TASK-0001-WF-05-cost-cap-observability | - | WF-01, WF-07 |
-| STEP-03 | WF-04 | 개인정보 안내·삭제 런북 정합화 | Draft | workflow/TASK-0001-WF-04-privacy-runbook-alignment | - | WF-02, WF-03, WF-07 |
+| STEP-03 | WF-04 | 개인정보 안내·삭제 런북 정합화 | Draft | workflow/TASK-0001-WF-04-privacy-runbook-alignment | - | WF-02, WF-03, WF-07, WF-09 |
 | STEP-03 | WF-06 | 공개 판정과 기준선 계측 | Draft | workflow/TASK-0001-WF-06-public-decision-baseline | - | WF-02, WF-03, WF-04, WF-05, WF-07 |
 
 WF-08은 WF-02의 PR에서 Landing CI가 처음 실행되며 드러난 기존 결함(`package-lock.json` optional 의존성 누락)을 분리한 것이다. `docs/claude/01-task-workflow.md` §11의 "현재 TASK와 무관한 결함" 기준을 적용했다. WF-02는 CI 통과를 위해 WF-08 병합 이후로 의존이 생겼다.

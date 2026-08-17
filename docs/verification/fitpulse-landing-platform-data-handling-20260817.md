@@ -114,3 +114,64 @@ WF-04에서 다음을 반영한다.
 ## 저장 금지 정보 확인
 
 이 문서에는 접근 토큰, 자격증명, 실제 참가자 데이터를 포함하지 않았다. `project_id`는 저장소의 `landing/.openai/hosting.json`에 이미 있는 값이며 여기에 다시 적지 않았다.
+
+---
+
+## 추가 확인 (2026-08-17, 같은 날 후속 조사)
+
+### 7. 예약 작업(cron) — 미지원
+
+> "ChatGPT Sites is not a fit for anything that needs a persistent Node.js process, a Postgres database, WebSocket servers, **scheduled background workers**, or third-party frameworks and hosting patterns the Sites runtime does not support."
+
+> "background services and long-running jobs are prohibited, as is scheduled background workers."
+
+> OpenAI 문서 인용: "some frameworks, private networks, databases, **background services**, and hosting patterns may not be supported."
+
+출처: [ChatGPT Sites Explained: Features and Limits](https://playcode.io/blog/chatgpt-sites-explained) (2차 자료. OpenAI 원문 인용을 포함하나 원문 미확인)
+
+**이 제약은 현재 구현의 데이터 보존 정책을 무력화한다.**
+
+| 현재 구현 | 위치 | cron 미실행 시 결과 |
+|---|---|---|
+| `scheduled` 핸들러 → `purgeExpiredData(env.DB)` | `landing/worker/index.ts` 169~171행 | 만료 삭제가 실행되지 않음 |
+| `"crons": ["17 3 * * *"]` | `landing/worker/wrangler.jsonc`, `vite.config.ts` 23행 | 일일 트리거 없음 |
+| 미확인 이메일 14일 삭제 | `landing/db/landing-storage.ts` 5·21~22행 | **14일 후에도 남음** |
+| 그 밖 데이터 365일 삭제 | 같은 파일 6행 | **보존 한도 미준수** |
+| `request_rate_limits` 1시간 정리 | 같은 파일 | 테이블 무한 증가 |
+
+**기존 검증의 한계**: `landing/tests/rendered-html.test.mjs`의 보존 테스트는 `/cdn-cgi/local/scheduled`를 **수동 호출**해 통과한다. 이는 로컬 Wrangler의 수동 트리거 기능이며 **프로덕션에서 cron이 실행된다는 근거가 아니다.**
+
+**영향**: 개인정보 안내가 "확인 전 14일, 그 밖 365일 보관"을 명시하는데, 실제로는 삭제되지 않을 수 있다. 이는 안내와 실제의 불일치이며 **공개 GO를 막는 차단 요인**이다.
+
+### 8. 비용 구조 — Sites는 플랜 번들
+
+> "ChatGPT Sites has no separate price tag and is bundled into paid ChatGPT plans... There is no per-site fee, no hosting invoice, and no free tier access."
+
+> "Sites is not available on the Free or Go tiers."
+
+> "usage is included up to plan-specific limits" — 한도는 "shown inside the product rather than on a public pricing page"
+
+출처: [ChatGPT Sites Pricing 2026](https://www.ud.hk/en/blogs/insight/article/chatgpt-sites-real-cost-2026-08-07), [ChatGPT Sites Explained](https://playcode.io/blog/chatgpt-sites-explained) (2차 자료)
+
+**Cloudflare Workers·D1 종량 비용은 우리가 부담하지 않는다.** 플랫폼이 자체 인프라에서 운영한다. 따라서 WF-01이 기록한 다음 두 항목은 **이 배포에 적용되지 않는다.**
+
+- "Free 플랜 D1 일일 한도 초과 시 읽기 전용 전환" — 우리 Cloudflare 계정 기준이며 플랫폼 D1과 무관
+- "Workers Logs 3일 보존, Logpush 불가" — 같은 사유
+
+**실제 비용 요소**는 다음으로 좁혀진다.
+
+| 요소 | 부담 주체 | 확인 상태 |
+|---|---|---|
+| ChatGPT 유료 플랜 구독료 | 소유자 | 이미 지출 중 (Sites 사용 = 유료 플랜) |
+| Sites 사용량 한도 | 플랜 포함 | **미확인 — 제품 내부에만 표시** |
+| Amazon SES 발송비 | 소유자 | 1,000건당 $0.16, 신규 크레딧 $200 |
+| Cloudflare Turnstile | 소유자 | Free 플랜 무료 |
+| 유료 채널 집행비 | 소유자 | 미집행 |
+
+### 추가 미확인 항목
+
+| # | 항목 | 사유 |
+|---|---|---|
+| 6 | cron 미지원의 **공식 문서 확인** | 2차 자료 인용만 확보. `help.openai.com` 403 |
+| 7 | Sites 사용량 한도의 실제 수치 | 제품 내부에만 표시된다고 기술됨. 소유자 콘솔 확인 필요 |
+| 8 | 배포 패키지에 `crons` 선언이 전달되는지, 무시되는지 | 배포 후 동작 관찰 필요 |
