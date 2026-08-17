@@ -12,6 +12,16 @@
 | 2026-08-17 | Task | TASK-0001 | Ready | task/TASK-0001-landing-public-gate | efdd9e9 | - | 문서 검증 Passed | AC-01~AC-12, STEP-01~03, WF-01~WF-06 분할 완료. 소유자 승인 |
 | 2026-08-17 | Task | TASK-0001 | In Progress | task/TASK-0001-landing-public-gate | - | - | Not Run | WF-01 착수에 따른 상태 전이 |
 | 2026-08-17 | Workflow | WF-01 | In Progress | workflow/TASK-0001-WF-01-provider-selection | - | - | Not Run | 공급자·데이터 처리 사실 조사 시작 |
+| 2026-08-17 | Workflow | WF-01 | Blocked | workflow/TASK-0001-WF-01-provider-selection | - | - | 문서 대조 4건 Passed, 2건 Not Run | ADR-20260817-003 초안 작성. 소유자 확인 6건 미완으로 ACCEPTED 전환 불가 |
+| 2026-08-17 | Task | TASK-0001 | In Progress | task/TASK-0001-landing-public-gate | - | - | Not Run | WF-01 조사 결과로 Scope 변경: WF-04에 D1 Time Travel 잔존 기간 반영 추가, TASK Risks 2건 추가 |
+| 2026-08-17 | Workflow | WF-01 | Blocked | workflow/TASK-0001-WF-01-provider-selection | - | - | 문서 대조 Passed | 소유자 입력으로 Cloudflare 플랜 Workers Free 확정. 대안 2개(Amazon SES, Brevo) 조사했으나 데이터 저장 위치·무료 한도를 확인하지 못해 비교 미완 |
+| 2026-08-17 | Task | TASK-0001 | In Progress | task/TASK-0001-landing-public-gate | - | - | Not Run | Scope 변경: 쟁점 3(Free 플랜 D1 읽기 전용 전환)을 WF-05에 추가, TASK Risks 2건 추가 |
+| 2026-08-17 | Workflow | WF-01 | Blocked | workflow/TASK-0001-WF-01-provider-selection | - | - | 공식 문서 조회 Passed | 요금·레지던시 페이지를 직접 조회해 미확인 6건 해소. Turnstile Free 무료, SES 서울 리전 지원·1,000건당 $0.16 확정. Cloudflare Email은 Workers Paid 전용 Beta로 배제 |
+| 2026-08-17 | Workflow | WF-01 | Blocked | workflow/TASK-0001-WF-01-provider-selection | - | - | 소유자 실행 확인 | **프로덕션 D1 부재 확인.** `wrangler d1 info site-creator-d1`이 계정에서 DB를 찾지 못함. 기존 검증이 전부 로컬 D1이었음이 드러남 |
+| 2026-08-17 | Task | TASK-0001 | In Progress | task/TASK-0001-landing-public-gate | - | - | Not Run | Scope 변경: 쟁점 4(D1 부재·위치 변경 불가)를 반영. TASK Risks 3건 추가, WF-06 판정 기준에서 실행 계획 88행 체크 승계 금지 |
+| 2026-08-17 | Workflow | WF-01 | Done | workflow/TASK-0001-WF-01-provider-selection | e6c64bc | - | 문서 대조 Passed | 소유자 선택으로 ADR-20260817-003 ACCEPTED. Turnstile Free, Amazon SES `ap-northeast-2`, D1 위치 `apac` 확정 |
+| 2026-08-17 | Workflow | WF-07 | Draft | workflow/TASK-0001-WF-07-d1-provisioning | - | - | Not Run | 프로덕션 D1 프로비저닝 Workflow 신설. 최초 계획에 없었으며 WF-01 조사 결과로 추가 |
+| 2026-08-17 | Task | TASK-0001 | In Progress | task/TASK-0001-landing-public-gate | - | - | Not Run | Scope 변경: WF-07 추가, AC-13~AC-15 추가, WF-03·WF-05·WF-04·WF-06 의존에 WF-07 반영 |
 
 ## 기록해야 할 사건과 현재 상태
 

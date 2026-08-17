@@ -7,7 +7,7 @@
 | Workflow ID | WF-01 |
 | Parent Task | TASK-0001 |
 | Parent Step | STEP-01 |
-| Status | Draft |
+| Status | Done |
 | Owner | 개인사업자 본인 |
 | Created At | 2026-08-17 |
 | Updated At | 2026-08-17 |
@@ -70,8 +70,8 @@
 
 | Order | Item | Applicable | Status | Evidence | Commit |
 |---|---|---|---|---|---|
-| 01 | 요구사항 정제 | Yes | Draft | - | - |
-| 02 | 보안 모델 | Yes | Draft | - | - |
+| 01 | 요구사항 정제 | Yes | Done | 실행 계획 104행 3조건을 조사 항목으로 분해 | - |
+| 02 | 보안 모델 | Yes | Done | Resend 미국 저장, Turnstile 방문자 신호 전송, D1 Time Travel 잔존을 ADR 쟁점으로 기록 | - |
 | 03 | ERD / 데이터 | No | N/A — 이 Workflow는 스키마를 변경하지 않음 | - | - |
 | 04 | API Contract | No | N/A — 외부 공급자 API 선정만 하고 연동은 WF-03 | - | - |
 | 05 | DTO | No | N/A — 코드 변경 없음 | - | - |
@@ -80,7 +80,7 @@
 | 08 | Controller | No | N/A — 코드 변경 없음 | - | - |
 | 09 | View / Client | No | N/A — 코드 변경 없음 | - | - |
 | 10 | Test | No | N/A — 코드 변경이 없어 자동 테스트 대상이 없음. 검증은 문서 대조로 수행 | - | - |
-| 11 | 문서 / HISTORY | Yes | Draft | - | - |
+| 11 | 문서 / HISTORY | Yes | Done | ADR-20260817-003 ACCEPTED. 선정 3건 확정, 잔여 미확인 5건을 후속 Workflow에 배정 | - |
 
 ## Expected Output
 
@@ -98,11 +98,13 @@
 
 | Type | Command or Method | Expected | Actual | Status |
 |---|---|---|---|---|
-| Document | `git diff --check` | 의도한 Markdown hard break 외 경고 없음 | 미실행 | Not Run |
-| Manual | ADR의 각 사실 항목에 출처 URL과 확인일이 있는지 항목별 대조 | 누락 0건 | 미실행 | Not Run |
-| Manual | 실행 계획 104행의 3조건 각각이 ADR에서 확정 또는 미확인으로 판정되었는지 대조 | 3건 모두 판정됨 | 미실행 | Not Run |
-| Manual | ADR에 계약·서명·결제 식별자·API 키가 포함되지 않았는지 확인 | 0건 | 미실행 | Not Run |
-| Manual | 선정 요금제 월 비용 합계가 예산 상한 500,000원 이내인지 계산 | 이내 | 미실행 | Not Run |
+| Document | `git diff --check` | 의도한 Markdown hard break 외 경고 없음 | 경고 0건 | Passed |
+| Manual | ADR의 각 사실 항목에 출처 URL과 확인일이 있는지 항목별 대조 | 누락 0건 | 확인된 사실 4개 표 전 항목에 출처 URL 기재, 확인일 2026-08-17 명시 | Passed |
+| Manual | 실행 계획 104행의 3조건 각각이 ADR에서 확정 또는 미확인으로 판정되었는지 대조 | 3건 모두 판정됨 | 조건 1·3은 후보 확정 및 요금 미확인, 조건 2는 미확인(계정 플랜·D1 위치·호스팅 미확인) | Passed — 단 확정은 1건뿐 |
+| Manual | ADR에 계약·서명·결제 식별자·API 키가 포함되지 않았는지 확인 | 0건 | 0건. 공개 테스트 sitekey만 포함하며 비밀정보 아님 | Passed |
+| Manual | 선정 요금제 월 비용 합계가 예산 상한 500,000원 이내인지 계산 | 이내 | Turnstile 0원 + SES 약 $0.48/월(월 3,000건) ≈ 700원. 상한 대비 여유 | Passed |
+| Manual | 계정 플랜·D1 존재 여부 확인 | 실제 값 기록 | Workers Free 확인. `wrangler d1 info site-creator-d1`이 DB를 찾지 못함 → 부재 확정 | Passed |
+| Manual | 실행 계획 104행 3조건의 최종 판정 | 확정 또는 미확인 기록 | 조건 1(이메일 공급자) 확정, 조건 3(남용 방어·비용) 방어 수단 확정·비용 조건은 WF-05, 조건 2(처리 국가·백업) 미확정 — D1 생성과 호스팅 확인 필요 | Passed |
 
 ## Done When
 
@@ -120,3 +122,8 @@
 | Date | Status | Commit | PR | Description |
 |---|---|---|---|---|
 | 2026-08-17 | Draft | - | - | Workflow 생성 |
+| 2026-08-17 | In Progress | - | - | 공급자 공식 문서 조사 시작 |
+| 2026-08-17 | Blocked | - | - | ADR 초안 작성 완료. 소유자 확인 6건(계정 플랜, D1 `database_id`·`location`, 호스팅 위치, Turnstile 요금, Resend 채택 여부·DPA)이 미완이라 `ACCEPTED` 전환 불가. 조사에서 Resend 미국 저장과 D1 Time Travel 잔존이라는 미기록 쟁점 2건이 드러남 |
+| 2026-08-17 | Blocked | - | - | 요금·레지던시 페이지 직접 조회로 미확인 6건 해소. Turnstile Free 무료, SES 서울 리전 지원·1,000건당 $0.16 확정. Cloudflare Email Sending은 Workers Paid 전용 Beta로 배제. Brevo는 JS 렌더링 페이지라 2회 시도 모두 조회 실패 |
+| 2026-08-17 | Blocked | - | - | 소유자가 인증된 Wrangler로 `d1 info` 실행. **프로덕션 D1 부재 확정.** 쟁점 4로 기록하고 WF-07을 신설, WF-06의 판정 승계 금지를 반영 |
+| 2026-08-17 | Done | - | - | 소유자 선택으로 ADR-20260817-003 ACCEPTED. Turnstile Free, Amazon SES `ap-northeast-2`, D1 위치 `apac` 확정. Brevo 후보 제외. 잔여 미확인 5건은 WF-03·WF-04·WF-06·WF-07에 배정 |
