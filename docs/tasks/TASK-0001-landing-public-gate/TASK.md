@@ -150,11 +150,14 @@
 |---|---|---|---|---|---|---|
 | STEP-01 | WF-01 | 공급자·데이터 처리 사실 확인과 선정 | Done | workflow/TASK-0001-WF-01-provider-selection | - | 없음 |
 | STEP-01 | WF-07 | 프로덕션 D1 프로비저닝 | Draft | workflow/TASK-0001-WF-07-d1-provisioning | - | WF-01 |
-| STEP-02 | WF-02 | 공개 트래픽 남용 방어 서버 검증 | Draft | workflow/TASK-0001-WF-02-abuse-defense | - | WF-01 |
+| STEP-02 | WF-08 | package-lock 무결성 복구 | Review | workflow/TASK-0001-WF-08-lockfile-integrity | - | 없음 |
+| STEP-02 | WF-02 | 공개 트래픽 남용 방어 서버 검증 | Review | workflow/TASK-0001-WF-02-abuse-defense | #2 | WF-01, WF-08 |
 | STEP-02 | WF-03 | 이메일 확인 흐름 | Draft | workflow/TASK-0001-WF-03-email-confirmation | - | WF-01, WF-07 |
 | STEP-02 | WF-05 | 비용 상한·중단 조건과 운영 계측 | Draft | workflow/TASK-0001-WF-05-cost-cap-observability | - | WF-01, WF-07 |
 | STEP-03 | WF-04 | 개인정보 안내·삭제 런북 정합화 | Draft | workflow/TASK-0001-WF-04-privacy-runbook-alignment | - | WF-02, WF-03, WF-07 |
 | STEP-03 | WF-06 | 공개 판정과 기준선 계측 | Draft | workflow/TASK-0001-WF-06-public-decision-baseline | - | WF-02, WF-03, WF-04, WF-05, WF-07 |
+
+WF-08은 WF-02의 PR에서 Landing CI가 처음 실행되며 드러난 기존 결함(`package-lock.json` optional 의존성 누락)을 분리한 것이다. `docs/claude/01-task-workflow.md` §11의 "현재 TASK와 무관한 결함" 기준을 적용했다. WF-02는 CI 통과를 위해 WF-08 병합 이후로 의존이 생겼다.
 
 WF-07은 WF-01 조사에서 프로덕션 D1 부재가 확인되어 추가되었다. WF-02는 D1 스키마에 의존하지 않으므로 WF-07과 병렬 실행할 수 있다. WF-03·WF-05는 원격 D1이 있어야 검증이 성립하므로 WF-07 이후에 진행한다.
 
