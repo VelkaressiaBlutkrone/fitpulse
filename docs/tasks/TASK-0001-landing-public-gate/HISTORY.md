@@ -32,7 +32,9 @@
 | 2026-08-17 | Task | TASK-0001 | In Progress | task/TASK-0001-landing-public-gate | 55dad7c | - | N/A — 문서 변경 | 소유자 지시로 Merge Authority를 `Human-only`에서 `Auto-after-checks`로 변경. `docs/claude/03` §10 병합 금지 조건은 그대로 적용 |
 | 2026-08-17 | Workflow | WF-08 | In Progress | workflow/TASK-0001-WF-08-lockfile-integrity | 6874bdd | #3 | `npm test` 8개 Passed | Task Branch의 Merge Authority 커밋과 HISTORY 표 행이 충돌. 양쪽 행을 모두 보존해 해결. 원인은 WF-08 병합 전에 Task Branch를 먼저 수정한 순서 오류 |
 | 2026-08-17 | Workflow | WF-08 | Done | workflow/TASK-0001-WF-08-lockfile-integrity | 5b2e933 | #3 | Landing CI Passed (58s) | PR #3 squash 병합. Task Branch에 lock 복구 반영 확인 |
-| 2026-08-17 | Workflow | WF-02 | Review | workflow/TASK-0001-WF-02-abuse-defense | - | #2 | N/A — Conflict 해결 | WF-08 병합분을 WF-02에 반영. HISTORY 표 행 충돌을 양쪽 보존으로 해결 |
+| 2026-08-17 | Workflow | WF-02 | Review | workflow/TASK-0001-WF-02-abuse-defense | 69afbdc | #2 | `npm test` 12개 Passed, lint Passed | WF-08 병합분을 WF-02에 반영. HISTORY 표 행 충돌을 양쪽 보존으로 해결 |
+| 2026-08-17 | Workflow | WF-02 | Done | workflow/TASK-0001-WF-02-abuse-defense | 06d76b0 | #2 | Landing CI Passed (1m1s) | PR #2 squash 병합. `landing/app/lib/turnstile.ts` 등 산출물 반영 확인 |
+| 2026-08-17 | Task | TASK-0001 | In Progress | task/TASK-0001-landing-public-gate | - | - | N/A — 문서 변경 | WF-01·WF-02·WF-08 병합 완료를 Workflow Index에 반영. 남은 필수 Workflow는 WF-03·WF-04·WF-05·WF-06·WF-07 |
 
 ## 기록해야 할 사건과 현재 상태
 

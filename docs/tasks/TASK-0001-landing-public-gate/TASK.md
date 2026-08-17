@@ -148,10 +148,10 @@
 
 | Step | Workflow | Description | Status | Branch | PR | Dependency |
 |---|---|---|---|---|---|---|
-| STEP-01 | WF-01 | 공급자·데이터 처리 사실 확인과 선정 | Done | workflow/TASK-0001-WF-01-provider-selection | - | 없음 |
+| STEP-01 | WF-01 | 공급자·데이터 처리 사실 확인과 선정 | Done | workflow/TASK-0001-WF-01-provider-selection | #1 Merged | 없음 |
 | STEP-01 | WF-07 | 프로덕션 D1 프로비저닝 | Draft | workflow/TASK-0001-WF-07-d1-provisioning | - | WF-01 |
-| STEP-02 | WF-08 | package-lock 무결성 복구 | Review | workflow/TASK-0001-WF-08-lockfile-integrity | - | 없음 |
-| STEP-02 | WF-02 | 공개 트래픽 남용 방어 서버 검증 | Review | workflow/TASK-0001-WF-02-abuse-defense | #2 | WF-01, WF-08 |
+| STEP-02 | WF-08 | package-lock 무결성 복구 | Done | workflow/TASK-0001-WF-08-lockfile-integrity | #3 Merged | 없음 |
+| STEP-02 | WF-02 | 공개 트래픽 남용 방어 서버 검증 | Done | workflow/TASK-0001-WF-02-abuse-defense | #2 Merged | WF-01, WF-08 |
 | STEP-02 | WF-03 | 이메일 확인 흐름 | Draft | workflow/TASK-0001-WF-03-email-confirmation | - | WF-01, WF-07 |
 | STEP-02 | WF-05 | 비용 상한·중단 조건과 운영 계측 | Draft | workflow/TASK-0001-WF-05-cost-cap-observability | - | WF-01, WF-07 |
 | STEP-03 | WF-04 | 개인정보 안내·삭제 런북 정합화 | Draft | workflow/TASK-0001-WF-04-privacy-runbook-alignment | - | WF-02, WF-03, WF-07 |
