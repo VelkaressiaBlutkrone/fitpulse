@@ -9,6 +9,9 @@
 | 2026-08-17 | Workflow | WF-04 | Draft | workflow/TASK-0001-WF-04-privacy-runbook-alignment | - | - | Not Run | Workflow 문서 생성 |
 | 2026-08-17 | Workflow | WF-05 | Draft | workflow/TASK-0001-WF-05-cost-cap-observability | - | - | Not Run | Workflow 문서 생성 |
 | 2026-08-17 | Workflow | WF-06 | Draft | workflow/TASK-0001-WF-06-public-decision-baseline | - | - | Not Run | Workflow 문서 생성 |
+| 2026-08-17 | Task | TASK-0001 | Ready | task/TASK-0001-landing-public-gate | efdd9e9 | - | 문서 검증 Passed | AC-01~AC-12, STEP-01~03, WF-01~WF-06 분할 완료. 소유자 승인 |
+| 2026-08-17 | Task | TASK-0001 | In Progress | task/TASK-0001-landing-public-gate | - | - | Not Run | WF-01 착수에 따른 상태 전이 |
+| 2026-08-17 | Workflow | WF-01 | In Progress | workflow/TASK-0001-WF-01-provider-selection | - | - | Not Run | 공급자·데이터 처리 사실 조사 시작 |
 
 ## 기록해야 할 사건과 현재 상태
 

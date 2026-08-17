@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Task ID | TASK-0001 |
-| Status | Draft |
+| Status | In Progress |
 | Priority | High |
 | Owner | 개인사업자 본인 |
 | Created At | 2026-08-17 |
@@ -126,7 +126,7 @@
 
 | Step | Workflow | Description | Status | Branch | PR | Dependency |
 |---|---|---|---|---|---|---|
-| STEP-01 | WF-01 | 공급자·데이터 처리 사실 확인과 선정 | Draft | workflow/TASK-0001-WF-01-provider-selection | - | 없음 |
+| STEP-01 | WF-01 | 공급자·데이터 처리 사실 확인과 선정 | In Progress | workflow/TASK-0001-WF-01-provider-selection | - | 없음 |
 | STEP-02 | WF-02 | 공개 트래픽 남용 방어 서버 검증 | Draft | workflow/TASK-0001-WF-02-abuse-defense | - | WF-01 |
 | STEP-02 | WF-03 | 이메일 확인 흐름 | Draft | workflow/TASK-0001-WF-03-email-confirmation | - | WF-01 |
 | STEP-02 | WF-05 | 비용 상한·중단 조건과 운영 계측 | Draft | workflow/TASK-0001-WF-05-cost-cap-observability | - | WF-01 |
