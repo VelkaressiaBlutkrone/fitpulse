@@ -105,7 +105,7 @@ WF-01에서 선정한 남용 방어 수단을 대기자 등록·설문·삭제 �
 | 07 | Service | Yes | Done | `app/lib/turnstile.ts` 신규 | - |
 | 08 | Controller | Yes | Done | `api-handlers.ts`, `api/waitlist/route.ts`, `worker/index.ts` | - |
 | 09 | View / Client | Yes | Done | `WaitlistForm.tsx` 위젯·토큰 전달, `page.tsx` sitekey 주입 | - |
-| 10 | Test | Yes | Done | 통합 테스트 12개 통과 (신규 3개 포함) | - |
+| 10 | Test | Yes | Done | 통합 테스트 12개 통과 (신규 4개 포함) | - |
 | 11 | 문서 / HISTORY | Yes | Done | 이 문서와 HISTORY 갱신 | - |
 
 ## Expected Output
@@ -128,7 +128,7 @@ WF-01에서 선정한 남용 방어 수단을 대기자 등록·설문·삭제 �
 
 | Type | Command or Method | Expected | Actual | Status |
 |---|---|---|---|---|
-| Test | `cd landing && npm test` | 신규 테스트 포함 전체 통과 | **12개 전부 통과** (기존 9 + 신규 3) | Passed |
+| Test | `cd landing && npm test` | 신규 테스트 포함 전체 통과 | **12개 전부 통과** (기존 8 + 신규 4) | Passed |
 | Lint | `cd landing && npm run lint` | 오류 0 | 출력 없음 (오류 0) | Passed |
 | Audit | `cd landing && npm audit --omit=dev --audit-level=high` | high 이상 0 | `found 0 vulnerabilities` | Passed |
 | Test | 토큰 누락 요청 거부 | 403 `turnstile_required`, siteverify 미호출 | 통과 | Passed |
