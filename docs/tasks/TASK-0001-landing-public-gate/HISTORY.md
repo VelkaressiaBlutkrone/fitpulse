@@ -68,3 +68,60 @@
 
 - `landing/db/schema.ts` 11행의 `verified_at` 컬럼, `landing/db/landing-storage.ts` 5·21~22행의 미확인 14일 삭제 조건, `landing/worker/index.ts` 169행의 `scheduled` 핸들러가 이미 구현되어 있다
 - 따라서 WF-03의 신규 범위는 확인 토큰 발급·발송·검증과 `verified_at` 설정으로 한정되며, 만료 삭제와 예약 작업은 회귀 확인 대상이다
+
+### 2026-08-17 — WF-07 전제 오류와 정정
+
+WF-07은 "프로덕션 D1을 직접 생성한다"로 정의되어 있었다. 착수 중 이 전제가 틀렸음을 확인하고 재정의했다.
+
+**확인한 사실**
+
+- `landing/.openai/hosting.json`에 `project_id`와 `d1: "DB"`가 있다.
+- `landing/vite.config.ts` 24~33행이 `database_id`를 플레이스홀더로 하드코딩하고 `migrations_dir`를 `dist/.openai/drizzle`로 지정한다.
+- `landing/build/sites-vite-plugin.ts` 27~42행이 `hosting.json`과 `drizzle/`를 `dist/.openai/`로 패키징한다.
+
+즉 이 랜딩은 OpenAI Sites 플랫폼 배포 패키지를 만들고, **D1은 플랫폼이 프로비저닝한다.** 플레이스홀더 `database_id`는 결함이 아니라 의도된 설계이며, Cloudflare 계정에 D1이 없는 것도 정상 상태다.
+
+**되돌린 조치**
+
+| 실행 | 되돌림 | 확인 |
+|---|---|---|
+| `wrangler d1 create fitpulse-landing --location=apac` (`cabbfb2c-f7c5-494f-84da-c8fb974fdcce`, APAC) | `wrangler d1 delete --skip-confirmation` | `d1 list`가 `[]` 반환 |
+| `worker/wrangler.jsonc`의 `database_name`·`database_id` 변경 | `git checkout --` | 원래 값 복원 |
+| `package.json`에 `db:migrate:remote` 추가 | `git checkout --` | 제거 확인 |
+
+생성한 데이터베이스에는 테이블·데이터가 없었고(`num_tables: 0`) 어떤 배포와도 연결되지 않아 데이터 손실은 없다.
+
+**원인과 재발 방지**
+
+배포 대상과 빌드 파이프라인을 먼저 읽지 않고 `wrangler d1 info` 결과만으로 결함을 판단했다. 인프라 관련 판단 전에는 `vite.config.ts`, 빌드 플러그인, 호스팅 설정을 먼저 확인한다.
+
+**영향**
+
+- `ADR-20260817-003`의 "D1 위치 힌트 `apac`" 결정을 철회했다.
+- WF-07을 "배포 플랫폼의 데이터 처리 사실 확인"으로 재정의했다.
+- AC-13·AC-14를 플랫폼 기준으로 다시 썼다.
+- WF-01의 미확인 항목 5(랜딩 호스팅의 실제 위치와 로그 보존)가 이 TASK에서 가장 중요한 미확인 항목이 되었다.
+
+### 2026-08-17 — WF-07 플랫폼 데이터 처리 확인 결과
+
+`docs/verification/fitpulse-landing-platform-data-handling-20260817.md`에 상세 기록.
+
+**확인된 사실 5건**
+
+| 항목 | 결과 |
+|---|---|
+| 데이터 레지던시 | **미지원** — 배포된 Sites, 코드, D1/R2 저장, 아티팩트, 로그 전부 |
+| 책임 구조 | 소유자 **Controller**, OpenAI **Processor**. "Hosted Data"로 정의 |
+| Hosted Data 범위 | 사용자 제공분 + **로그·사용·기기정보·쿠키 수집분** |
+| 재수탁자 | 웹호스팅·인프라·모더레이션 제공, **보안·안전 분류기를 페이지에 실행** |
+| 삭제 후 보존 | 삭제 요청 후 **내부 최대 30일** |
+| 금지 데이터 | PHI·결제카드 처리 금지. `ADR-20260814-002` 제외 범위와 일치 |
+
+**Not Run 3건** — `help.openai.com`과 `openai.com/policies`가 HTTP 403을 반환해 원문 대조, 재수탁자 명단·소재국, Sites 로그 보존 기간을 확인하지 못했다. 근거는 검색 결과에 인용된 문구다.
+
+**영향**
+
+- `ADR-20260817-003`의 SES 서울 선택 근거 중 **"국외 이전 고지를 피할 수 있다"를 철회**했다. 이메일 원본이 저장되는 D1의 위치를 통제할 수 없으므로 고지는 어차피 필요하다. 선택 자체(발송 수탁자 국내화, 낮은 단가)는 유지한다.
+- WF-04는 수탁자 목록에 OpenAI와 그 재수탁자를 넣고, **저장 국가를 특정할 수 없다는 사실**, 로그·기기정보 수집, 페이지 분류기 실행, 삭제 후 30일 보존을 안내에 반영해야 한다.
+- WF-06은 실행 계획 104행 조건 2를 "처리 국가 확정 불가, 수탁 2단 구조 확인, 삭제 후 30일 보존"으로 판정하되 Not Run 3건을 명시한다.
+- WF-01이 기록한 Cloudflare D1 Time Travel 7일은 **우리 계정 기준이며 이 배포에 적용되지 않는다.**
