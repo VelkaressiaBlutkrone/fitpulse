@@ -15,7 +15,7 @@ export type ChannelCode = (typeof APPROVED_CHANNEL_CODES)[number];
 
 export type WaitlistInput = {
   email: string;
-  consentVersion: "prevalidation-v2";
+  consentVersion: "prevalidation-v3";
   channelCode: ChannelCode;
   bot: boolean;
   // 서버에서만 검증한다. 형식과 유효성 판정은 turnstile 모듈이 담당한다.
@@ -85,7 +85,7 @@ export function parseWaitlistInput(payload: unknown): Result<WaitlistInput> {
 
   if (!validEmail) return { ok: false, error: "invalid_email" };
   if (payload.consent !== true) return { ok: false, error: "consent_required" };
-  if (payload.consentVersion !== "prevalidation-v2") {
+  if (payload.consentVersion !== "prevalidation-v3") {
     return { ok: false, error: "invalid_consent_version" };
   }
 
@@ -93,7 +93,7 @@ export function parseWaitlistInput(payload: unknown): Result<WaitlistInput> {
     ok: true,
     value: {
       email,
-      consentVersion: "prevalidation-v2",
+      consentVersion: "prevalidation-v3",
       channelCode: normalizeChannelCode(payload.channelCode),
       bot: typeof payload.company === "string" && payload.company.trim().length > 0,
       turnstileToken: payload.turnstileToken,
