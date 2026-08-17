@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Task ID | TASK-0001 |
-| Status | Review |
+| Status | Done |
 | Priority | High |
 | Owner | 개인사업자 본인 |
 | Created At | 2026-08-17 |
@@ -298,7 +298,7 @@ WF-07은 WF-01 조사에서 프로덕션 D1 부재가 확인되어 추가되었�
 | Lint | `cd landing && npm run lint` | 오류 0 | 출력 없음 (오류 0) | Passed |
 | Audit | `cd landing && npm audit --omit=dev --audit-level=high` | high 이상 취약점 0 | `found 0 vulnerabilities` | Passed |
 | Build | `cd landing && npm run build` | 성공 (`npm test`에 포함) | `npm test`의 선행 단계로 성공 | Passed |
-| CI | `.github/workflows/landing.yml` | Landing CI 통과 | 미실행 | Not Run — Task PR 생성 후 확인 |
+| CI | `.github/workflows/landing.yml` | Landing CI 통과 | PR #14 `verify` **Passed (1m10s)**, run 32017284698 | Passed |
 | Manual | 실기기 또는 375×812·768×1024·1280×720 뷰포트에서 등록·확인·설문·삭제 전 흐름 실행 | 기능·가로 넘침·키보드 순서 이상 없음 | 미실행 | Not Run — 배포 필요. TASK-0004 WF-02로 이관 |
 | Manual | 삭제 요청 실행 후 D1 대상 행 부재 검산 | 대상 행 0건 | 로컬 D1에서 검산 완료 (`docs/verification/fitpulse-landing-deletion-verification-20260817.md`) | Passed — 로컬 한정. 배포본 검산은 TASK-0004 WF-02 |
 | Document | `git diff --check` | 의도한 Markdown hard break 외 경고 없음 | 경고 0건 | Passed |
@@ -317,8 +317,8 @@ WF-07은 WF-01 조사에서 프로덕션 D1 부재가 확인되어 추가되었�
 - [x] 보안, 권한, 예외 처리를 검토했다. — Turnstile 서버 검증, 정리 엔드포인트 `Authorization` 전용·토큰 미설정 시 401 거부, 확인 토큰 해시 저장과 이벤트 미기록을 테스트로 강제
 - [x] DB 호환성과 Rollback을 검토했다. — WF-03의 마이그레이션은 컬럼 추가만 수행하고 기존 컬럼·마이그레이션을 변경하지 않았다. 역방향은 신규 파일 추가로 처리
 - [x] TASK와 HISTORY를 갱신했다.
-- [ ] Task PR 필수 CI가 통과했다. — **Not Run.** Task PR 생성 후 확인한다
-- [ ] 필수 리뷰가 완료되었다. — 보증 수준은 `ADR-20260814-001`의 창업자 자체 검토
-- [ ] 해결되지 않은 리뷰 의견이 없다.
+- [x] Task PR 필수 CI가 통과했다. — PR #14 Landing CI `verify` **Passed (1m10s)**
+- [x] 필수 리뷰가 완료되었다. — 보증 수준은 `ADR-20260814-001`의 창업자 자체 검토이며 **독립 검증이 아니다.** 저장소 Ruleset이 별도 승인자를 요구하지 않음을 `mergeStateStatus: CLEAN`으로 확인했다
+- [x] 해결되지 않은 리뷰 의견이 없다. — PR #13·#14에 리뷰 의견 없음
 - [x] 미완료 작업이 별도 TASK로 분리되었다. — TASK-0004
 - [x] 공개 판정 관련 조건은 TASK-0004의 Definition of Done으로 이관했다. 이 TASK는 판정의 입력을 갖추는 것까지 책임진다

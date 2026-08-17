@@ -46,6 +46,8 @@
 | 2026-08-17 | Task | TASK-0001 | In Progress | task/TASK-0001-landing-public-gate | - | - | N/A — 문서 변경 | Scope 변경: 비용 상한·공개 판정·기준선 계측·배포본 검증을 Excluded로 이동. AC-09~AC-12·AC-15를 TASK-0004로 이관 |
 | 2026-08-17 | Task | TASK-0004 | Draft | task/TASK-0004-landing-public-release-decision | - | - | N/A — 문서 생성 | 후속 TASK 신설. 이관된 범위를 WF-01·WF-02로 재편 |
 | 2026-08-17 | Task | TASK-0001 | **Review** | task/TASK-0001-landing-public-gate | - | - | `npm ci`·`npm test` 21개·lint·audit **Passed** | 필수 Workflow 전부 Done. 통합 검증 실제 실행 후 Review 전이. Task PR CI는 Not Run |
+| 2026-08-17 | Workflow | WF-10 | Done | workflow/TASK-0001-WF-10-scope-split-and-closeout | 10db2c3 | #13 | Landing CI `N/A — 경로 미해당` | PR #13 squash 병합. `landing/` 미변경으로 CI 미트리거. Task Branch 반영 확인 |
+| 2026-08-17 | Task | TASK-0001 | **Done** | task/TASK-0001-landing-public-gate | d69a995 | #14 | Landing CI `verify` **Passed (1m10s)** | Task PR #14 squash 병합. `develop`의 lock 결손 해소 확인 |
 
 ## 기록해야 할 사건과 현재 상태
 
