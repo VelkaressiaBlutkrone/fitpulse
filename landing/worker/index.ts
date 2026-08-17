@@ -1,7 +1,7 @@
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
-import { consumeRateLimit, purgeExpiredData } from "../db/landing-storage";
-import { handleApiWrite } from "../app/lib/api-handlers";
+import { consumeRateLimit, purgeExpiredData, runRetentionPurge } from "../db/landing-storage";
+import { handleApiWrite, handleMaintenancePurge } from "../app/lib/api-handlers";
 import { turnstileConfigFromEnv } from "../app/lib/turnstile";
 import {
   createSessionToken,
@@ -25,6 +25,8 @@ type WorkerEnv = Env & {
   TURNSTILE_SECRET_KEY?: string;
   // 기본값은 Cloudflare 실제 엔드포인트다. 테스트에서만 로컬 스텁으로 덮어쓴다.
   TURNSTILE_VERIFY_URL?: string;
+  // 외부 스케줄러가 보존 정리를 호출할 때 쓰는 토큰. 미설정이면 트리거가 닫힌다.
+  MAINTENANCE_TOKEN?: string;
 };
 
 const TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
@@ -111,6 +113,13 @@ async function handleApplicationRequest(
     }, allowedWidths);
   }
 
+  // 예약 작업을 쓸 수 없으므로 인증된 외부 스케줄러가 이 경로로 정리를 돌린다.
+  if (url.pathname === "/api/maintenance/purge") {
+    if (request.method !== "POST") return jsonError("method_not_allowed", 405);
+    await discardRequestBody(request);
+    return handleMaintenancePurge(request, env.DB, env.MAINTENANCE_TOKEN);
+  }
+
   const rateLimit = API_LIMITS[url.pathname];
   const isWrite = rateLimit !== undefined && (request.method === "POST" || request.method === "DELETE");
   if (!isWrite) return handler.fetch(request, env, ctx);
@@ -144,6 +153,17 @@ async function handleApplicationRequest(
   }
 
   const response = await handleApiWrite(request, env.DB, turnstileConfigFromEnv(env));
+
+  // 요청 시점 정리. 예약 작업이 없는 환경에서 보존 기간을 지키기 위한 1차 경로다.
+  // 최소 간격 게이트가 있어 매 쓰기마다 돌지 않으며, 실패해도 응답에 영향을 주지 않는다.
+  ctx.waitUntil(
+    runRetentionPurge(env.DB).catch((error) => {
+      console.error(JSON.stringify({
+        message: "retention_purge_failed",
+        error: error instanceof Error ? error.message : "unknown_error",
+      }));
+    }),
+  );
   if (existingVisitorToken) return response;
 
   const headers = new Headers(response.headers);

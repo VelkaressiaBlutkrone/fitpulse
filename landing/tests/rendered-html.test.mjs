@@ -24,6 +24,10 @@ const TEST_TURNSTILE_SECRET = "test-turnstile-secret";
 const VALID_TURNSTILE_TOKEN = "valid-turnstile-token";
 const EXPIRED_TURNSTILE_TOKEN = "expired-turnstile-token";
 
+// 배포 플랫폼이 cron을 지원하지 않으므로 외부 스케줄러가 호출하는
+// 정리 엔드포인트를 인증한다. TASK-0001 / WF-09 참조.
+const TEST_MAINTENANCE_TOKEN = "test-maintenance-token";
+
 let persistenceDirectory;
 let server;
 let serverOutput = "";
@@ -101,6 +105,8 @@ async function startServer() {
     `TURNSTILE_SECRET_KEY:${TEST_TURNSTILE_SECRET}`,
     "--var",
     `TURNSTILE_VERIFY_URL:${turnstileVerifyUrl}`,
+    "--var",
+    `MAINTENANCE_TOKEN:${TEST_MAINTENANCE_TOKEN}`,
     "--log-level",
     "warn",
   ], {
@@ -517,6 +523,61 @@ test("uses native form validation and exposes accessible server errors", async (
   assert.match(form, /window\.turnstile\?\.reset\(\)/);
   // 시크릿 키가 클라이언트 번들에 들어가지 않는다.
   assert.doesNotMatch(form, /TURNSTILE_SECRET/);
+});
+
+test("rejects unauthenticated retention purge triggers", async () => {
+  const noToken = await request("/api/maintenance/purge", { method: "POST" });
+  assert.equal(noToken.status, 401, `${await noToken.clone().text()}\n${serverOutput}`);
+  assert.deepEqual(await noToken.json(), { error: "unauthorized" });
+
+  const wrongToken = await request("/api/maintenance/purge", {
+    method: "POST",
+    headers: { authorization: "Bearer not-the-token" },
+  });
+  assert.equal(wrongToken.status, 401);
+  assert.deepEqual(await wrongToken.json(), { error: "unauthorized" });
+
+  // 토큰을 질의 문자열로 받지 않는다. 로그·Referer 유출 경로를 만들지 않기 위함이다.
+  const queryToken = await request(
+    `/api/maintenance/purge?token=${TEST_MAINTENANCE_TOKEN}`,
+    { method: "POST" },
+  );
+  assert.equal(queryToken.status, 401);
+  await queryToken.json();
+});
+
+test("purges expired data when an authenticated trigger runs", async () => {
+  const stale = "2020-01-01T00:00:00.000Z";
+  await queryDatabase(`
+    INSERT INTO waitlist_entries
+      (id, email, consent_version, consented_at, verified_at, channel_code, management_token_hash, created_at)
+      VALUES ('wf09-expired', 'wf09-expired@example.com', 'prevalidation-v2', '${stale}', NULL, 'direct', 'wf09-expired-token', '${stale}');
+    INSERT INTO landing_events (id, event_name, event_key, properties_json, created_at)
+      VALUES ('wf09-expired-event', 'landing_view', 'wf09:expired', '{}', '${stale}');
+  `);
+
+  const purge = await request("/api/maintenance/purge", {
+    method: "POST",
+    headers: { authorization: `Bearer ${TEST_MAINTENANCE_TOKEN}` },
+  });
+  assert.equal(purge.status, 202, `${await purge.clone().text()}\n${serverOutput}`);
+  assert.deepEqual(await purge.json(), { accepted: true });
+
+  const remaining = await queryDatabase(`SELECT
+    (SELECT count(*) FROM waitlist_entries WHERE id = 'wf09-expired') AS expired_waitlist,
+    (SELECT count(*) FROM landing_events WHERE id = 'wf09-expired-event') AS expired_event`);
+  assert.deepEqual(remaining, [{ expired_waitlist: 0, expired_event: 0 }]);
+});
+
+test("records purge runs so request-time cleanup does not repeat every write", async () => {
+  const runs = await queryDatabase(
+    "SELECT name, last_run_at FROM maintenance_runs WHERE name = 'retention_purge'",
+  );
+  assert.equal(runs.length, 1, "정리 실행 시각이 기록되어야 한다");
+  assert.ok(
+    typeof runs[0].last_run_at === "number" && runs[0].last_run_at > 0,
+    "last_run_at이 기록되어야 한다",
+  );
 });
 
 test("scopes the abuse defense origin in the content security policy", async () => {

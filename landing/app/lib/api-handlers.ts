@@ -1,5 +1,6 @@
 import {
   deleteWaitlistBySession,
+  runRetentionPurge,
   storeClientMetric,
   storeSurvey,
   storeWaitlist,
@@ -124,6 +125,34 @@ export async function handleEventsPost(request: Request, db: D1Database) {
   try {
     await storeClientMetric(db, parsed.value);
     return acceptedResponse(request);
+  } catch {
+    return json({ error: "storage_unavailable" }, 503);
+  }
+}
+
+/**
+ * 외부 스케줄러가 호출하는 보존 정리 트리거.
+ *
+ * 배포 플랫폼이 예약 작업을 지원하지 않아 필요하다. 토큰은 Authorization
+ * 헤더로만 받는다. 질의 문자열로 받으면 접근 로그와 Referer에 남는다.
+ * TASK-0001 / WF-09 참조.
+ */
+export async function handleMaintenancePurge(
+  request: Request,
+  db: D1Database,
+  maintenanceToken?: string,
+) {
+  const provided = request.headers.get("authorization");
+  const expected = maintenanceToken ? `Bearer ${maintenanceToken}` : undefined;
+
+  // 토큰이 설정되지 않은 환경에서는 트리거를 열어두지 않는다.
+  if (!expected || provided !== expected) {
+    return json({ error: "unauthorized" }, 401);
+  }
+
+  try {
+    await runRetentionPurge(db, { force: true });
+    return json({ accepted: true }, 202);
   } catch {
     return json({ error: "storage_unavailable" }, 503);
   }
