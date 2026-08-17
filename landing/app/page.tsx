@@ -4,25 +4,25 @@ import { TrackedCta, WaitlistForm } from "./components/WaitlistForm";
 const problems = [
   {
     number: "01",
-    title: "지난 기록이 흩어집니다",
-    body: "메모와 앱을 오가다 보면 지난번 무게와 반복 수를 찾는 일부터 운동이 시작됩니다.",
+    title: "지난 기록을 찾는 데 시간이 갑니다",
+    body: "메모 앱, 사진, 종이 노트를 오가며 지난주 무게를 확인하다 보면 첫 세트가 늦어집니다.",
   },
   {
     number: "02",
-    title: "증량 기준이 모호합니다",
-    body: "성공했어도 몇 kg을 올릴지, 실패했으면 얼마나 낮출지 결국 감으로 정하게 됩니다.",
+    title: "올릴지 유지할지 매번 고민합니다",
+    body: "5회 목표를 4회에 멈췄을 때 다음엔 같은 무게로 갈지, 2.5kg을 올릴지 정해줄 기준이 없습니다.",
   },
   {
     number: "03",
-    title: "기록이 다음 행동으로 이어지지 않습니다",
-    body: "차트는 늘어나지만 오늘 바벨에 끼울 원판의 숫자는 직접 계산해야 합니다.",
+    title: "기록은 쌓이는데 계산은 남습니다",
+    body: "누적 볼륨 차트는 늘어나지만 오늘 바에 끼울 원판 조합은 여전히 머리로 계산합니다.",
   },
 ];
 
 const steps = [
-  ["기록", "한 손으로 세트의 중량·횟수·RPE를 빠르게 남깁니다."],
-  ["판단", "최근 수행과 목표 달성 여부를 비교합니다."],
-  ["제안", "다음 운동에서 시도할 숫자와 그 이유를 보여줍니다."],
+  ["기록", "세트를 마치면 중량·횟수·RPE를 한 손으로 남깁니다."],
+  ["판단", "같은 종목의 최근 수행과 목표 달성 여부를 나란히 놓습니다."],
+  ["제안", "다음에 시도할 숫자와 그렇게 정한 이유를 함께 보여줄 계획입니다."],
 ];
 
 export default function Home() {
@@ -59,9 +59,9 @@ export default function Home() {
             <span className="build-notice">현재 개발 준비 중 · 결제 없음</span>
           </div>
           <dl className="signal-row">
-            <div><dt>기준</dt><dd>지난 수행</dd></div>
-            <div><dt>입력</dt><dd>중량 · 횟수 · RPE</dd></div>
-            <div><dt>출력</dt><dd>다음 목표 + 근거</dd></div>
+            <div><dt>판단 기준</dt><dd>지난 수행</dd></div>
+            <div><dt>입력할 것</dt><dd>중량 · 횟수 · RPE</dd></div>
+            <div><dt>보여줄 것</dt><dd>다음 목표와 근거</dd></div>
           </dl>
         </div>
 
@@ -131,10 +131,16 @@ export default function Home() {
             출시 소식과 초기 테스트 초대를 보내드립니다. 아직 만들어지지 않은 앱이며,
             지금은 결제 정보를 받지 않습니다.
           </p>
+          <p className="confirm-notice">
+            <b>신청은 두 단계입니다.</b> 아래에서 이메일을 넣으면 확인 메일이 갑니다.
+            메일의 링크를 눌러야 신청이 완료됩니다. 링크는 14일 뒤 만료되고,
+            확인하지 않은 신청은 같은 기간이 지나면 삭제됩니다.
+          </p>
           <ul>
             <li>출시 알림 외 광고 메일 없음</li>
             <li>등록 브라우저에서 즉시 취소·삭제 가능</li>
             <li>첫 설문에서 건강정보를 묻지 않음</li>
+            <li>확인된 주소만 대기자로 집계</li>
           </ul>
         </div>
         <WaitlistForm />
@@ -143,9 +149,12 @@ export default function Home() {
       <section className="faq-section" aria-labelledby="faq-title">
         <h2 id="faq-title">확인해 두면 좋은 것</h2>
         <div className="faq-list">
-          <details><summary>지금 바로 사용할 수 있나요?</summary><p>아니요. 현재는 개발 전 수요 검증 단계입니다. 실제 테스트 일정이 정해지면 신청자에게 먼저 안내합니다.</p></details>
+          <details><summary>지금 바로 사용할 수 있나요?</summary><p>아니요. 현재는 개발 전 수요 검증 단계입니다. 화면 시안은 개발 예정 모습이며 동작하는 앱이 아닙니다. 실제 테스트 일정이 정해지면 신청자에게 먼저 안내합니다.</p></details>
+          <details><summary>신청하면 무엇이 일어나나요?</summary><p>확인 메일이 갑니다. 메일의 링크를 눌러야 신청이 완료되고, 그때부터 대기자로 집계됩니다. 링크는 14일 뒤 만료됩니다. 확인 전에는 출시 안내나 인터뷰 연락을 보내지 않습니다.</p></details>
           <details><summary>무료인가요?</summary><p>현재는 결제를 받지 않습니다. 가격과 무료 범위는 실제 사용 검증 이후 결정하며, 결정 전에는 확정된 것처럼 안내하지 않습니다.</p></details>
           <details><summary>어떤 데이터를 받나요?</summary><p>첫 단계에서는 이메일과 비민감 선택 설문만 받습니다. 부상, 통증, 수면, 심박 같은 건강정보는 수집하지 않습니다.</p></details>
+          <details><summary>데이터는 어디에 저장되나요?</summary><p>현재 배포 환경은 저장 지역을 지정하는 기능을 제공하지 않아 <b>저장 국가를 특정해 알려드릴 수 없습니다.</b> 대한민국 밖에서 저장·처리될 수 있습니다. 위탁 사업자와 보관 기간은 <a href="/privacy">개인정보 안내</a>에 적어두었습니다.</p></details>
+          <details><summary>삭제는 바로 되나요?</summary><p>저장소에서는 즉시 지웁니다. 다만 배포 환경 내부에 최대 30일 남을 수 있고 그 기간이 지나면 복원할 수 없습니다.</p></details>
           <details><summary>의료·재활 서비스를 제공하나요?</summary><p>아니요. FitPulse는 의료 진단, 치료 또는 재활 처방을 제공하지 않습니다.</p></details>
         </div>
       </section>

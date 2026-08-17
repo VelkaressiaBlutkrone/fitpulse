@@ -7,7 +7,7 @@
 | Workflow ID | WF-01 |
 | Parent Task | TASK-0002 |
 | Parent Step | STEP-01 |
-| Status | Review |
+| Status | Done |
 | Owner | 개인사업자 본인 |
 | Created At | 2026-08-17 |
 | Updated At | 2026-08-17 |

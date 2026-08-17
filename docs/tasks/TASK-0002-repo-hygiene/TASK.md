@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Task ID | TASK-0002 |
-| Status | Review |
+| Status | Done |
 | Priority | Medium |
 | Owner | 개인사업자 본인 |
 | Created At | 2026-08-17 |
@@ -76,12 +76,12 @@ TASK-0001 진행 중 두 결함을 확인해 기록했으나, 그 TASK의 Scope 
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `CLAUDE.md`와 `docs/claude/*.md`에 통합 브랜치를 뜻하는 `dev` 표기가 남아 있지 않다.
-- [ ] AC-02: 정정 후에도 `dev`가 브랜치 외 의미로 쓰인 표현은 훼손되지 않았다.
-- [ ] AC-03: 저장소 루트 `.gitignore`가 존재하고 `.omc/`, `.codex-tmp/`, `.gstack/`를 무시한다.
-- [ ] AC-04: `git check-ignore`로 세 디렉터리가 무시됨을 확인했다.
-- [ ] AC-05: `git status`에 도구 상태 디렉터리가 나타나지 않는다.
-- [ ] AC-06: `git diff --check`가 의도한 Markdown hard break 외 경고를 내지 않는다.
+- [x] AC-01: `CLAUDE.md`와 `docs/claude/*.md`에 통합 브랜치를 뜻하는 `dev` 표기가 남아 있지 않다.
+- [x] AC-02: 정정 후에도 `dev`가 브랜치 외 의미로 쓰인 표현은 훼손되지 않았다.
+- [x] AC-03: 저장소 루트 `.gitignore`가 존재하고 `.omc/`, `.codex-tmp/`, `.gstack/`를 무시한다.
+- [x] AC-04: `git check-ignore`로 세 디렉터리가 무시됨을 확인했다.
+- [x] AC-05: `git status`에 도구 상태 디렉터리가 나타나지 않는다.
+- [x] AC-06: `git diff --check`가 의도한 Markdown hard break 외 경고를 내지 않는다.
 
 ## Dependencies
 
@@ -101,7 +101,7 @@ TASK-0001 진행 중 두 결함을 확인해 기록했으나, 그 TASK의 Scope 
 
 | Step | Workflow | Description | Status | Branch | PR | Dependency |
 |---|---|---|---|---|---|---|
-| STEP-01 | WF-01 | 표기 정정과 무시 목록 정비 | Review | task/TASK-0002-repo-hygiene | - | 없음 |
+| STEP-01 | WF-01 | 표기 정정과 무시 목록 정비 | Done | task/TASK-0002-repo-hygiene | #10 Merged | 없음 |
 
 단순 TASK이므로 `docs/claude/01-task-workflow.md` §10에 따라 Task Branch 하나로 처리한다. 별도 Workflow Branch를 만들지 않는다.
 
@@ -136,7 +136,7 @@ TASK-0001 진행 중 두 결함을 확인해 기록했으나, 그 TASK의 Scope 
 
 ## Definition of Done
 
-- [ ] 필수 Workflow(WF-01)가 Done이다.
+- [x] 필수 Workflow(WF-01)가 Done이다.
 - [ ] 모든 Acceptance Criteria(AC-01~AC-06)가 검증되었다.
 - [ ] 규칙 문서의 절차 내용이 바뀌지 않았음을 확인했다.
 - [ ] TASK와 HISTORY를 갱신했다.
