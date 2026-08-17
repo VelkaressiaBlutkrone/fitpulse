@@ -40,6 +40,12 @@
 | 2026-08-17 | Workflow | WF-03 | Done | workflow/TASK-0001-WF-03-email-confirmation | 841243e | #8 | Landing CI Passed (1m7s), `npm test` 20개 Passed | PR #8 squash 병합. 확인 흐름 로컬 완결. 실제 SES 연동과 실기기 QA는 Not Run |
 | 2026-08-17 | Workflow | WF-04 | Done | workflow/TASK-0001-WF-04-privacy-runbook-alignment | dca8a26 | #9 | Landing CI Passed (1m4s), `npm test` 21개 Passed | PR #9 squash 병합. 안내를 확인된 사실에 정합화, 동의 버전 v3. 배포본 검산은 Not Run |
 | 2026-08-17 | Workflow | WF-05 | In Progress | workflow/TASK-0001-WF-05-cost-cap-observability | b52ff94 | #5 | 문서 검증 Passed | PR #5 squash 병합. **비용 전제 정정과 WF-09 신설만 완료.** 월 상한 금액 결정, 감지 수단 확인, 중단 절차는 미착수 |
+| 2026-08-17 | Workflow | WF-10 | In Progress | workflow/TASK-0001-WF-10-scope-split-and-closeout | - | - | Not Run | 배포 의존 범위 분리 Workflow 신설. `develop` CI 차단 해소가 목적 |
+| 2026-08-17 | Workflow | WF-05 | **Cancelled** | workflow/TASK-0001-WF-05-cost-cap-observability | - | #5 | N/A — 이관 | TASK-0004 WF-01로 대체. 완료분(비용 전제 정정)은 승계, 미착수분은 이관 |
+| 2026-08-17 | Workflow | WF-06 | **Cancelled** | workflow/TASK-0001-WF-06-public-decision-baseline | - | - | N/A — 착수 전 | TASK-0004 WF-02로 대체. 배포 의존 검증 해소를 범위에 추가해 승계 |
+| 2026-08-17 | Task | TASK-0001 | In Progress | task/TASK-0001-landing-public-gate | - | - | N/A — 문서 변경 | Scope 변경: 비용 상한·공개 판정·기준선 계측·배포본 검증을 Excluded로 이동. AC-09~AC-12·AC-15를 TASK-0004로 이관 |
+| 2026-08-17 | Task | TASK-0004 | Draft | task/TASK-0004-landing-public-release-decision | - | - | N/A — 문서 생성 | 후속 TASK 신설. 이관된 범위를 WF-01·WF-02로 재편 |
+| 2026-08-17 | Task | TASK-0001 | **Review** | task/TASK-0001-landing-public-gate | - | - | `npm ci`·`npm test` 21개·lint·audit **Passed** | 필수 Workflow 전부 Done. 통합 검증 실제 실행 후 Review 전이. Task PR CI는 Not Run |
 
 ## 기록해야 할 사건과 현재 상태
 
@@ -252,3 +258,77 @@ WF-02·WF-03·WF-07·WF-09에서 확인한 사실을 안내 문구에 반영했�
 **검증**: `npm test` 21개 통과(신규 1개), lint 오류 0, audit 0건. 삭제·보존 검산 11개 항목을 `docs/verification/fitpulse-landing-deletion-verification-20260817.md`에 기록했다(AC-08).
 
 **Not Run**: 배포본에서의 삭제·보존 동작 확인, 플랫폼 내부 30일 잔존의 실제 검증(관찰 수단 없음), 삭제 요청 이메일 경로.
+
+### 2026-08-17 — WF-10: 배포 의존 범위 분리와 `develop` CI 차단 해소
+
+**발견한 문제**
+
+`develop`에서 분기한 브랜치의 PR이 전부 `npm ci` 단계에서 실패한다. PR #11(TASK-0003)의 Landing CI 로그가 원인을 가리킨다.
+
+```text
+npm error code EUSAGE
+npm error Missing: @emnapi/runtime@1.11.3 from lock file
+npm error Missing: @emnapi/core@1.11.3 from lock file
+```
+
+lock 파일 실측으로 확인했다.
+
+```text
+git show origin/develop:landing/package-lock.json | grep -c '"node_modules/@emnapi'                    → 1
+git show origin/task/TASK-0001-landing-public-gate:landing/package-lock.json | grep -c '...'           → 3
+git show origin/task/TASK-0003-landing-copy:landing/package-lock.json | grep -c '...'                  → 1
+```
+
+**원인 사슬**
+
+WF-08의 lock 복구는 이미 끝났고 PR #3으로 Task Branch에 병합되었다. 그러나 TASK-0001이 `Done`이 되지 못해 Task PR이 열리지 않았고, 복구본이 `develop`에 도달하지 못했다.
+
+`Done`을 막은 것은 `Blocked` 상태의 WF-05·WF-06이다. `docs/claude/01-task-workflow.md` §9가 필수 Workflow 전부 `Done`을 요구하기 때문이다. 두 Workflow는 소유자의 배포 보류 지시(2026-08-17)로 `Blocked`가 되었다.
+
+즉 **배포를 기다리는 문서 작업 2개가 이미 끝난 코드 수정의 통합을 막고 있었다.** 개별 판단은 각각 옳았으나 결합된 결과가 통합 브랜치를 망가뜨렸다. 이것이 이 세션에서 가장 값비싼 교훈이다.
+
+**교훈: 통합 브랜치를 고치는 변경은 TASK 마감에 묶지 않는다.**
+
+WF-08은 `docs/claude/01` §11의 "현재 TASK와 무관한 결함" 기준으로 분리된 Workflow였다. 분리까지는 옳았으나 **Task Branch 안에 두었기 때문에** TASK 마감 조건에 묶였다. 통합 브랜치의 CI를 복구하는 성격의 변경은 처음부터 독립 TASK로 만들어 `develop`에 직행시켰어야 했다.
+
+**수행한 조치**
+
+| 항목 | 처리 |
+|---|---|
+| WF-05 | `Cancelled — TASK-0004 WF-01로 대체`. 완료분(비용 전제 정정, PR #5)은 TASK-0004의 "확정된 입력"으로 승계 |
+| WF-06 | `Cancelled — TASK-0004 WF-02로 대체`. 착수 전이었음 |
+| AC-09·AC-10·AC-11·AC-12·AC-15 | TASK-0004 AC-01~AC-05로 이관. TASK-0001에 이관표를 남겨 삭제가 아님을 명시 |
+| 배포본 검증 Not Run 항목 | TASK-0004 WF-02 범위에 추가 (실제 SES 발송, 배포본 안내 검산, 배포본 삭제·보존 확인, cron 관찰, 원문 대조 3건, 실기기 QA) |
+| TASK-0001 Goal·Scope·Steps·DoD | 남은 범위에 맞게 갱신 |
+| TASK-0001 Status | `In Progress` → `Review` |
+
+Workflow 번호는 재사용하지 않았다(`docs/claude/01` §1). TASK-0004에서 WF-01·WF-02로 새 번호를 부여했다.
+
+**판단 기록: TASK-0004 문서를 WF-10에서 만든 이유**
+
+`CLAUDE.md` 5절의 "하나의 Branch에서 여러 TASK를 처리하지 않는다"에 걸리는지 검토했고, 걸리지 않는다고 판단했다. 이 Branch에서 하는 것은 TASK-0004의 **작업이 아니라 분리 기록**이며, TASK-0004의 실제 작업은 Scope에서 명시적으로 제외했다. 분리를 두 PR로 쪼개면 그 사이 시점에 이관된 작업이 어느 TASK에도 속하지 않는 공백과 dangling 참조가 생긴다. 상세는 `workflows/WF-10-scope-split-and-closeout.md`의 "판단 기록" 절에 있다.
+
+### 2026-08-17 — WF-10 통합 검증 (실제 실행 결과)
+
+Task Branch에서 CI(`.github/workflows/landing.yml`)와 동일한 순서로 실행했다. 전체 exit code 0.
+
+**실행 환경**: Windows / Node.js v24.12.0 / npm 11.6.2. **CI는 Node.js 22를 사용하므로 런타임이 동일하지 않다.** 이 차이는 Task PR의 Landing CI 결과로 확인한다.
+
+| 명령 | 결과 |
+|---|---|
+| `npm ci` | 507 packages 설치, 오류 없음 |
+| `npm test` | `tests 21 / pass 21 / fail 0`, duration 44.9s |
+| `npm run lint` | 출력 없음 (오류 0) |
+| `npm audit --omit=dev --audit-level=high` | `found 0 vulnerabilities` |
+
+**기록해야 할 차이 1건.** `npm ci`는 `6 vulnerabilities (4 moderate, 2 high)`를 보고했으나 `npm audit --omit=dev --audit-level=high`는 `found 0 vulnerabilities`를 반환했다. high 2건이 **dev 의존성에 있어 `--omit=dev`에서 제외**된다는 뜻이다. CI가 쓰는 명령이 후자이므로 CI 기준으로는 통과이나, prod 의존성이 아니라는 이유로 취약점이 사라진 것은 아니다. 숨기지 않고 남긴다.
+
+**여전히 Not Run인 것**
+
+| 항목 | 사유 | 이관처 |
+|---|---|---|
+| Task PR Landing CI | PR 미생성 | 이 TASK에서 확인 |
+| 실기기·뷰포트 QA | 배포 필요 | TASK-0004 WF-02 |
+| 배포본 삭제·보존 검산 | 배포 필요 | TASK-0004 WF-02 |
+| 실제 SES 발송 | AWS 프로덕션 액세스 승인 대기 | TASK-0004 WF-02 |
+| OpenAI 문서 원문 대조 3건 | `help.openai.com` HTTP 403 | TASK-0004 WF-02 |

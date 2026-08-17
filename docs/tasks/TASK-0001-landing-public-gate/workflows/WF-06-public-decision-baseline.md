@@ -1,5 +1,24 @@
 # WF-06: 공개 판정과 기준선 계측
 
+> **Cancelled — TASK-0004 WF-02로 대체 (2026-08-17)**
+>
+> 이 Workflow는 **취소가 아니라 이관**되었다. 작업은
+> `docs/tasks/TASK-0004-landing-public-release-decision/workflows/WF-02-public-decision-baseline.md`에서 계속한다.
+>
+> **이관 사유.** 공개 판정은 배포된 사이트 자체를 대상으로 한다.
+> 2026-08-17 소유자의 배포 보류 지시로 `Blocked` 상태가 되었고, `docs/claude/01-task-workflow.md` §9에 따라
+> TASK-0001의 마감을 막았다. 그 결과 WF-08의 `package-lock.json` 복구가 `develop`에 도달하지 못해
+> 통합 브랜치에서 분기한 모든 PR의 CI가 `npm ci`에서 실패했다.
+> 상세는 `../WF-10-scope-split-and-closeout.md`에 있다.
+>
+> **착수 전 상태였다.** 이 Workflow에서 완료된 산출물은 없다.
+>
+> **이관하며 추가된 범위.** TASK-0001이 `Not Run`으로 남긴 배포 의존 검증(실제 SES 발송, 배포본 안내 검산,
+> 배포본 삭제·보존 확인과 cron 관찰, OpenAI 원문 대조 3건, 실기기 뷰포트 QA)을 TASK-0004 WF-02에 포함했다.
+> 배포가 있어야 수행할 수 있고 동시에 공개 판정의 입력이기 때문이다.
+>
+> 아래 본문은 이관 시점의 기록으로 보존한다. 갱신하지 않는다.
+
 ## Metadata
 
 | Field | Value |
@@ -7,7 +26,7 @@
 | Workflow ID | WF-06 |
 | Parent Task | TASK-0001 |
 | Parent Step | STEP-03 |
-| Status | Draft |
+| Status | **Cancelled — TASK-0004 WF-02로 대체** |
 | Owner | 개인사업자 본인 |
 | Created At | 2026-08-17 |
 | Updated At | 2026-08-17 |
