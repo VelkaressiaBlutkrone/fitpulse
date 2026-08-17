@@ -11,11 +11,16 @@ export const waitlistEntries = sqliteTable(
     verifiedAt: text("verified_at"),
     channelCode: text("channel_code").notNull(),
     managementTokenHash: text("management_token_hash"),
+    // 확인 토큰은 해시만 저장한다. 원문은 메일 링크에만 실린다.
+    // 확인이 끝나면 해시를 지워 링크 재사용을 막는다. TASK-0001 / WF-03 참조.
+    confirmationTokenHash: text("confirmation_token_hash"),
+    confirmationExpiresAt: text("confirmation_expires_at"),
     createdAt: text("created_at").notNull(),
   },
   (table) => [
     uniqueIndex("waitlist_email_ci_idx").on(sql`lower(${table.email})`),
     uniqueIndex("waitlist_management_token_idx").on(table.managementTokenHash),
+    uniqueIndex("waitlist_confirmation_token_idx").on(table.confirmationTokenHash),
   ],
 );
 

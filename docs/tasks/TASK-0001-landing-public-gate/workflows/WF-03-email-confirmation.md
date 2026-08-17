@@ -7,7 +7,7 @@
 | Workflow ID | WF-03 |
 | Parent Task | TASK-0001 |
 | Parent Step | STEP-02 |
-| Status | Draft |
+| Status | Review — 실제 SES 연동 Not Run |
 | Owner | 개인사업자 본인 |
 | Created At | 2026-08-17 |
 | Updated At | 2026-08-17 |
@@ -101,17 +101,17 @@
 
 | Order | Item | Applicable | Status | Evidence | Commit |
 |---|---|---|---|---|---|
-| 01 | 요구사항 정제 | Yes | Draft | - | - |
-| 02 | 보안 모델 | Yes | Draft | - | - |
-| 03 | ERD / 데이터 | Yes | Draft | - | - |
-| 04 | API Contract | Yes | Draft | - | - |
-| 05 | DTO | Yes | Draft | - | - |
-| 06 | Domain | Yes | Draft | - | - |
-| 07 | Service | Yes | Draft | - | - |
-| 08 | Controller | Yes | Draft | - | - |
-| 09 | View / Client | Yes | Draft | - | - |
-| 10 | Test | Yes | Draft | - | - |
-| 11 | 문서 / HISTORY | Yes | Draft | - | - |
+| 01 | 요구사항 정제 | Yes | Done | `waitlist_submit` 의미 유지 결정, 로컬 완결 범위 확정 | - |
+| 02 | 보안 모델 | Yes | Done | 해시만 저장, 토큰 1회 소비, 리다이렉트에 토큰 미포함, 실패 사유 미구분 | - |
+| 03 | ERD / 데이터 | Yes | Done | `0003` 마이그레이션 — `ADD COLUMN` 2개, 인덱스 1개 | - |
+| 04 | API Contract | Yes | Done | `GET /api/waitlist/confirm`, `GET /api/waitlist/summary` | - |
+| 05 | DTO | Yes | Done | `ConfirmationEmail`, `EmailConfig`, `SendResult` | - |
+| 06 | Domain | Yes | Done | 확인 상태 전이와 만료 판정 | - |
+| 07 | Service | Yes | Done | `confirmWaitlistByToken`, `countVerifiedWaitlist`, `sendConfirmationEmail` | - |
+| 08 | Controller | Yes | Done | `handleWaitlistConfirm`, `handleWaitlistSummary`, Worker 라우팅 | - |
+| 09 | View / Client | Yes | Done | `app/confirm/page.tsx`, 폼 성공 문구 갱신 | - |
+| 10 | Test | Yes | Done | 신규 5개 포함 20개 통과 | - |
+| 11 | 문서 / HISTORY | Yes | Done | 이 문서와 HISTORY | - |
 
 ## Expected Output
 
@@ -139,14 +139,37 @@
 
 | Type | Command or Method | Expected | Actual | Status |
 |---|---|---|---|---|
-| Test | `cd landing && npm test` | 신규·기존 테스트 전체 통과 | 미실행 | Not Run |
-| Lint | `cd landing && npm run lint` | 오류 0 | 미실행 | Not Run |
-| Audit | `cd landing && npm audit --omit=dev --audit-level=high` | high 이상 0 | 미실행 | Not Run |
-| Build | `cd landing && npm run db:generate` | 새 마이그레이션 파일 생성, 기존 파일 변경 0 | 미실행 | Not Run |
-| Manual | `npm run preview` 후 등록 → 확인 링크 → 재클릭 순서 실행 | 확인 1회 성공, 재클릭은 재사용 응답 | 미실행 | Not Run |
-| Manual | D1 `landing_events` 저장 행에서 토큰·이메일 문자열 검색 | 0건 | 미실행 | Not Run |
-| Manual | 확인 전 상태에서 대기자 집계 질의 실행 | 미확인 항목 미포함 | 미실행 | Not Run |
-| Security | `git diff`에서 API 키·시크릿 문자열 검색 | 0건 | 미실행 | Not Run |
+| Test | `cd landing && npm test` | 신규·기존 테스트 전체 통과 | **20개 전부 통과** (기존 15 + 신규 5) | Passed |
+| Lint | `cd landing && npm run lint` | 오류 0 | 오류 0 | Passed |
+| Audit | `cd landing && npm audit --omit=dev --audit-level=high` | high 이상 0 | `found 0 vulnerabilities` | Passed |
+| Build | `cd landing && npm run db:generate` | 새 마이그레이션 파일 생성, 기존 파일 변경 0 | `0003_omniscient_la_nuit.sql` 생성. `ADD COLUMN` 2개와 인덱스 1개만 추가 | Passed |
+| Test | 등록 → 확인 링크 → 재클릭 | 확인 1회 성공, 재클릭은 무효 처리 | 통과 | Passed |
+| Test | 위조·누락 토큰 거부 | 무효 처리로 리다이렉트 | 통과 | Passed |
+| Test | 확인 후 토큰 해시가 지워짐 | `confirmation_token_hash IS NULL` | 통과 | Passed |
+| Test | 리다이렉트 주소에 토큰 미포함 | `token=` 없음 | 통과 | Passed |
+| Test | 발송 실패 시에도 등록 성공·정보 미노출 | 202, 발송 관련 문구 없음 | 통과 | Passed |
+| Test | 미확인 항목이 집계에서 제외됨 | 확인분만 계수 | 통과 | Passed |
+| Test | 집계 응답에 이메일·내부 ID 미포함 | 0건 | 통과 | Passed |
+| Test | `waitlist_confirm` 이벤트가 확인당 1회 | 1건 | 통과 | Passed |
+| Test | `landing_events`에 토큰 문자열 부재 | 0건 | 통과 | Passed |
+| Security | `git diff`에서 API 키·시크릿 문자열 검색 | 0건 | 0건 | Passed |
+| Manual | **실제 Amazon SES 연동과 발송 검증** | 실제 메일 수신 | 미실행 | **Not Run — AWS 프로덕션 액세스 승인 대기** |
+| Manual | 375×812 뷰포트에서 확인 페이지 표시 확인 | 가로 넘침 없음 | 미실행 | **Not Run — 실기기 QA 보류** |
+
+### 구현 범위와 남은 것
+
+소유자 지시로 배포를 보류했으므로 **로컬에서 완결되는 범위까지** 구현했다.
+
+| 구현함 | 남음 |
+|---|---|
+| 확인 토큰 발급·해시 저장·만료(14일) | 실제 SES SigV4 서명 또는 SMTP 연동 |
+| 확인 링크 처리와 `verified_at` 설정 | 실제 메일 수신 확인 |
+| 재사용·만료·위조 토큰 거부 | 실기기 뷰포트 QA |
+| 발송 어댑터 경계(`app/lib/email.ts`) | |
+| 확인 결과 페이지(`app/confirm/page.tsx`) | |
+| 확인분만 세는 집계(`/api/waitlist/summary`) | |
+
+발송 어댑터는 HTTP 엔드포인트로 위임하는 형태이며, `EMAIL_SEND_URL`을 주입하지 않으면 발송을 건너뛰고 등록은 성공한다. AWS 승인 후 이 경계 안만 SES 구현으로 교체하면 된다.
 
 ## Done When
 
@@ -165,3 +188,4 @@
 | Date | Status | Commit | PR | Description |
 |---|---|---|---|---|
 | 2026-08-17 | Draft | - | - | Workflow 생성 |
+| 2026-08-17 | Review | - | - | 로컬 완결 범위 구현. 확인 토큰 발급·검증, 확인 페이지, 발송 어댑터 경계, 확인분 집계. `npm test` 20개 통과. 실제 SES 연동은 AWS 승인 대기로 Not Run |

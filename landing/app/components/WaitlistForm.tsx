@@ -128,7 +128,7 @@ export function WaitlistForm({ turnstileSiteKey }: { turnstileSiteKey?: string }
     }
 
     setStage("survey");
-    showStatus("신청을 접수했습니다. 확인된 주소만 출시 안내 대상으로 사용합니다.");
+    showStatus("확인 메일을 보냈습니다. 메일의 링크를 눌러야 신청이 완료됩니다.");
   }
 
   async function submitSurvey(event: FormEvent<HTMLFormElement>) {

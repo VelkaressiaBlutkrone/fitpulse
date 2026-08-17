@@ -1,5 +1,5 @@
 import type { ClientMetricInput, SurveyInput, WaitlistInput } from "../app/lib/input";
-import { hashSessionToken } from "../app/lib/session";
+import { createSessionToken, hashSessionToken } from "../app/lib/session";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const PENDING_RETENTION_DAYS = 14;
@@ -7,6 +7,10 @@ const DATA_RETENTION_DAYS = 365;
 
 function isoBefore(now: Date, days: number) {
   return new Date(now.getTime() - days * DAY_MS).toISOString();
+}
+
+function isoAfter(now: Date, days: number) {
+  return new Date(now.getTime() + days * DAY_MS).toISOString();
 }
 
 const RETENTION_PURGE_NAME = "retention_purge";
@@ -79,11 +83,20 @@ export async function storeWaitlist(
     channel_code: input.channelCode,
   });
 
+  // 확인 토큰은 원문을 저장하지 않는다. 해시만 남기고 원문은 메일 링크에만 실린다.
+  const confirmationToken = createSessionToken();
+  const confirmationHash = await hashSessionToken(confirmationToken);
+  const confirmationExpiresAt = isoAfter(now, PENDING_RETENTION_DAYS);
+
   const [insert] = await db.batch([
     db.prepare(`INSERT OR IGNORE INTO waitlist_entries
-      (id, email, consent_version, consented_at, verified_at, channel_code, management_token_hash, created_at)
-      VALUES (?, ?, ?, ?, NULL, ?, ?, ?)`)
-      .bind(id, input.email, input.consentVersion, timestamp, input.channelCode, tokenHash, timestamp),
+      (id, email, consent_version, consented_at, verified_at, channel_code, management_token_hash,
+       confirmation_token_hash, confirmation_expires_at, created_at)
+      VALUES (?, ?, ?, ?, NULL, ?, ?, ?, ?, ?)`)
+      .bind(
+        id, input.email, input.consentVersion, timestamp, input.channelCode, tokenHash,
+        confirmationHash, confirmationExpiresAt, timestamp,
+      ),
     db.prepare(`INSERT OR IGNORE INTO landing_events
       (id, event_name, event_key, properties_json, created_at)
       SELECT ?, 'waitlist_submit', ?, ?, ?
@@ -92,7 +105,61 @@ export async function storeWaitlist(
       .bind(eventId, eventKey, eventProperties, timestamp, id, tokenHash),
   ]);
 
-  return { created: insert.meta.changes === 1 };
+  const created = insert.meta.changes === 1;
+  // 중복 등록이면 새 토큰을 발급하지 않는다. 기존 확인 링크가 그대로 유효하다.
+  return { created, confirmationToken: created ? confirmationToken : null };
+}
+
+/**
+ * 확인 토큰을 소비해 항목을 확인 상태로 만든다.
+ *
+ * 성공 시 토큰 해시를 지워 링크 재사용을 막는다. 만료·위조·재사용은 모두
+ * 같은 결과(false)로 처리해 응답으로 이메일 존재 여부를 추론할 수 없게 한다.
+ */
+export async function confirmWaitlistByToken(
+  db: D1Database,
+  token: string,
+  now = new Date(),
+) {
+  const tokenHash = await hashSessionToken(token);
+  const timestamp = now.toISOString();
+  const eventId = crypto.randomUUID();
+
+  const entry = await db
+    .prepare(`SELECT id, channel_code FROM waitlist_entries
+      WHERE confirmation_token_hash = ?
+        AND verified_at IS NULL
+        AND confirmation_expires_at > ?`)
+    .bind(tokenHash, timestamp)
+    .first<{ id: string; channel_code: string }>();
+
+  if (!entry) return { confirmed: false };
+
+  const eventProperties = JSON.stringify({
+    page_version: "landing-v1",
+    channel_code: entry.channel_code,
+  });
+
+  const [update] = await db.batch([
+    db.prepare(`UPDATE waitlist_entries
+      SET verified_at = ?, confirmation_token_hash = NULL, confirmation_expires_at = NULL
+      WHERE confirmation_token_hash = ? AND verified_at IS NULL`)
+      .bind(timestamp, tokenHash),
+    db.prepare(`INSERT OR IGNORE INTO landing_events
+      (id, event_name, event_key, properties_json, created_at)
+      VALUES (?, 'waitlist_confirm', ?, ?, ?)`)
+      .bind(eventId, `waitlist_confirm:${entry.id}`, eventProperties, timestamp),
+  ]);
+
+  return { confirmed: update.meta.changes === 1 };
+}
+
+/** 확인된 대기자 수만 센다. 미확인 항목은 수요 신호로 세지 않는다. */
+export async function countVerifiedWaitlist(db: D1Database) {
+  const row = await db
+    .prepare("SELECT count(*) AS verified FROM waitlist_entries WHERE verified_at IS NOT NULL")
+    .first<{ verified: number }>();
+  return { verified: row?.verified ?? 0 };
 }
 
 export async function storeSurvey(

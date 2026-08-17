@@ -1,8 +1,14 @@
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
 import { consumeRateLimit, purgeExpiredData, runRetentionPurge } from "../db/landing-storage";
-import { handleApiWrite, handleMaintenancePurge } from "../app/lib/api-handlers";
+import {
+  handleApiWrite,
+  handleMaintenancePurge,
+  handleWaitlistConfirm,
+  handleWaitlistSummary,
+} from "../app/lib/api-handlers";
 import { turnstileConfigFromEnv } from "../app/lib/turnstile";
+import { emailConfigFromEnv } from "../app/lib/email";
 import {
   createSessionToken,
   readCookie,
@@ -27,6 +33,10 @@ type WorkerEnv = Env & {
   TURNSTILE_VERIFY_URL?: string;
   // 외부 스케줄러가 보존 정리를 호출할 때 쓰는 토큰. 미설정이면 트리거가 닫힌다.
   MAINTENANCE_TOKEN?: string;
+  // 확인 메일 발송 어댑터 설정. 미설정이면 발송을 건너뛰고 등록은 성공한다.
+  EMAIL_SEND_URL?: string;
+  EMAIL_API_KEY?: string;
+  EMAIL_FROM?: string;
 };
 
 const TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
@@ -113,6 +123,18 @@ async function handleApplicationRequest(
     }, allowedWidths);
   }
 
+  // 확인 링크는 메일에서 열리므로 GET이다. 토큰은 즉시 소비되고
+  // 토큰 없는 주소로 리다이렉트한다.
+  if (url.pathname === "/api/waitlist/confirm") {
+    if (request.method !== "GET") return jsonError("method_not_allowed", 405);
+    return handleWaitlistConfirm(request, env.DB);
+  }
+
+  if (url.pathname === "/api/waitlist/summary") {
+    if (request.method !== "GET") return jsonError("method_not_allowed", 405);
+    return handleWaitlistSummary(env.DB);
+  }
+
   // 예약 작업을 쓸 수 없으므로 인증된 외부 스케줄러가 이 경로로 정리를 돌린다.
   if (url.pathname === "/api/maintenance/purge") {
     if (request.method !== "POST") return jsonError("method_not_allowed", 405);
@@ -152,7 +174,12 @@ async function handleApplicationRequest(
     return jsonError("storage_unavailable", 503);
   }
 
-  const response = await handleApiWrite(request, env.DB, turnstileConfigFromEnv(env));
+  const response = await handleApiWrite(
+    request,
+    env.DB,
+    turnstileConfigFromEnv(env),
+    emailConfigFromEnv(env),
+  );
 
   // 요청 시점 정리. 예약 작업이 없는 환경에서 보존 기간을 지키기 위한 1차 경로다.
   // 최소 간격 게이트가 있어 매 쓰기마다 돌지 않으며, 실패해도 응답에 영향을 주지 않는다.
