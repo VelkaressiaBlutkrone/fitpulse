@@ -28,6 +28,46 @@ const EXPIRED_TURNSTILE_TOKEN = "expired-turnstile-token";
 // 정리 엔드포인트를 인증한다. TASK-0001 / WF-09 참조.
 const TEST_MAINTENANCE_TOKEN = "test-maintenance-token";
 
+// 확인 메일 발송 어댑터를 로컬 스텁으로 대체한다. 실제 SES 연동은 AWS
+// 프로덕션 액세스 승인 후에 채운다. TASK-0001 / WF-03 참조.
+const emailStubPort = port + 700;
+const emailSendUrl = `http://127.0.0.1:${emailStubPort}/send`;
+let emailStub;
+let sentEmails = [];
+let emailStubShouldFail = false;
+
+function startEmailStub() {
+  emailStub = createServer((incoming, response) => {
+    let body = "";
+    incoming.on("data", (chunk) => { body += chunk; });
+    incoming.on("end", () => {
+      if (emailStubShouldFail) {
+        response.writeHead(500, { "content-type": "application/json" });
+        response.end(JSON.stringify({ error: "provider_unavailable" }));
+        return;
+      }
+      try {
+        sentEmails.push(JSON.parse(body));
+      } catch {
+        sentEmails.push({ parseError: body });
+      }
+      response.writeHead(202, { "content-type": "application/json" });
+      response.end(JSON.stringify({ accepted: true }));
+    });
+  });
+  return new Promise((resolve) => emailStub.listen(emailStubPort, "127.0.0.1", resolve));
+}
+
+function stopEmailStub() {
+  if (!emailStub) return Promise.resolve();
+  return new Promise((resolve) => emailStub.close(resolve));
+}
+
+function confirmationLinkFrom(mail) {
+  const target = mail?.confirmationUrl ?? "";
+  return typeof target === "string" ? target : "";
+}
+
 let persistenceDirectory;
 let server;
 let serverOutput = "";
@@ -107,6 +147,8 @@ async function startServer() {
     `TURNSTILE_VERIFY_URL:${turnstileVerifyUrl}`,
     "--var",
     `MAINTENANCE_TOKEN:${TEST_MAINTENANCE_TOKEN}`,
+    "--var",
+    `EMAIL_SEND_URL:${emailSendUrl}`,
     "--log-level",
     "warn",
   ], {
@@ -134,6 +176,7 @@ async function startServer() {
 
 before(async () => {
   await startTurnstileStub();
+  await startEmailStub();
   persistenceDirectory = await mkdtemp(join(tmpdir(), "fitpulse-worker-test-"));
   await wrangler(
     "d1",
@@ -162,6 +205,7 @@ async function stopServer() {
 after(async () => {
   await stopServer();
   await stopTurnstileStub();
+  await stopEmailStub();
   if (persistenceDirectory) {
     for (let attempt = 0; attempt < 5; attempt += 1) {
       try {
@@ -525,6 +569,112 @@ test("uses native form validation and exposes accessible server errors", async (
   assert.doesNotMatch(form, /TURNSTILE_SECRET/);
 });
 
+test("sends a confirmation link and verifies the entry exactly once", async () => {
+  sentEmails = [];
+  const email = `confirm-${Date.now()}@example.com`;
+  const register = await request("/api/waitlist", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(waitlistPayload({ email })),
+  });
+  assert.equal(register.status, 202, `${await register.clone().text()}\n${serverOutput}`);
+  await register.json();
+
+  assert.equal(sentEmails.length, 1, "확인 메일이 한 번 발송되어야 한다");
+  const mail = sentEmails[0];
+  assert.equal(mail.to, email);
+
+  const link = confirmationLinkFrom(mail);
+  assert.match(link, /\/api\/waitlist\/confirm\?token=/);
+
+  const confirmPath = link.slice(link.indexOf("/api/"));
+  const confirmed = await request(confirmPath, { method: "GET", redirect: "manual" });
+  assert.equal(confirmed.status, 302, `${await confirmed.clone().text()}\n${serverOutput}`);
+  // 토큰이 최종 주소에 남지 않아야 브라우저 이력과 Referer로 새지 않는다.
+  const location = confirmed.headers.get("location") ?? "";
+  assert.doesNotMatch(location, /token=/);
+  await confirmed.arrayBuffer();
+
+  // 같은 링크를 다시 열면 소비된 토큰이므로 확인 성공으로 처리하지 않는다.
+  const reused = await request(confirmPath, { method: "GET", redirect: "manual" });
+  assert.equal(reused.status, 302);
+  assert.match(reused.headers.get("location") ?? "", /\/confirm\?status=invalid/);
+  await reused.arrayBuffer();
+
+  const rows = await queryDatabase(
+    `SELECT verified_at IS NOT NULL AS verified, confirmation_token_hash IS NULL AS token_cleared
+     FROM waitlist_entries WHERE email = '${email}'`,
+  );
+  assert.deepEqual(rows, [{ verified: 1, token_cleared: 1 }]);
+
+  const events = await queryDatabase(
+    "SELECT count(*) AS count FROM landing_events WHERE event_name = 'waitlist_confirm'",
+  );
+  assert.deepEqual(events, [{ count: 1 }], "확인 이벤트는 한 번만 기록되어야 한다");
+});
+
+test("rejects forged confirmation tokens", async () => {
+  const forged = await request("/api/waitlist/confirm?token=not-a-real-token", {
+    method: "GET",
+    redirect: "manual",
+  });
+  assert.equal(forged.status, 302);
+  assert.match(forged.headers.get("location") ?? "", /\/confirm\?status=invalid/);
+  await forged.arrayBuffer();
+
+  const missing = await request("/api/waitlist/confirm", { method: "GET", redirect: "manual" });
+  assert.equal(missing.status, 302);
+  assert.match(missing.headers.get("location") ?? "", /\/confirm\?status=invalid/);
+  await missing.arrayBuffer();
+});
+
+test("keeps registration successful and private when sending fails", async () => {
+  sentEmails = [];
+  emailStubShouldFail = true;
+  const email = `sendfail-${Date.now()}@example.com`;
+  const register = await request("/api/waitlist", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(waitlistPayload({ email })),
+  });
+  emailStubShouldFail = false;
+
+  // 발송 실패가 등록을 막지 않는다. 미확인으로 남고 14일 뒤 삭제된다.
+  assert.equal(register.status, 202, `${await register.clone().text()}\n${serverOutput}`);
+  const body = await register.json();
+  assert.deepEqual(body, { accepted: true });
+  assert.doesNotMatch(JSON.stringify(body), /mail|send|smtp|provider/i);
+});
+
+test("excludes unverified entries from the waitlist count", async () => {
+  const counts = await queryDatabase(
+    `SELECT
+      (SELECT count(*) FROM waitlist_entries WHERE verified_at IS NOT NULL) AS verified,
+      (SELECT count(*) FROM waitlist_entries WHERE verified_at IS NULL) AS unverified`,
+  );
+  assert.ok(counts[0].verified >= 1, "확인된 항목이 있어야 한다");
+  assert.ok(counts[0].unverified >= 1, "미확인 항목이 있어야 비교가 성립한다");
+
+  const summary = await request("/api/waitlist/summary", { method: "GET" });
+  assert.equal(summary.status, 200, `${await summary.clone().text()}\n${serverOutput}`);
+  const payload = await summary.json();
+  assert.equal(
+    payload.verified,
+    counts[0].verified,
+    "집계는 확인된 항목만 센다",
+  );
+  // 집계 응답이 이메일이나 내부 ID를 노출하지 않는다.
+  assert.doesNotMatch(JSON.stringify(payload), /@|token|id/i);
+});
+
+test("keeps confirmation tokens out of stored events", async () => {
+  const leaks = await queryDatabase(
+    `SELECT count(*) AS count FROM landing_events
+     WHERE properties_json LIKE '%token%' OR event_key LIKE '%token%'`,
+  );
+  assert.deepEqual(leaks, [{ count: 0 }]);
+});
+
 test("rejects unauthenticated retention purge triggers", async () => {
   const noToken = await request("/api/maintenance/purge", { method: "POST" });
   assert.equal(noToken.status, 401, `${await noToken.clone().text()}\n${serverOutput}`);
@@ -598,14 +748,16 @@ test("persists only authoritative, deduplicated rows and enforces the survey for
   await stopServer();
 
   const metricRows = await queryDatabase(
-    "SELECT event_name, count(*) AS count FROM landing_events WHERE event_name IN ('waitlist_submit','survey_complete','interview_opt_in') GROUP BY event_name ORDER BY event_name",
+    "SELECT event_name, count(*) AS count FROM landing_events WHERE event_name IN ('waitlist_submit','waitlist_confirm','survey_complete','interview_opt_in') GROUP BY event_name ORDER BY event_name",
   );
-  // waitlist_submit은 세션별 등록 테스트 1건 + Turnstile 통과 테스트 1건이다.
+  // waitlist_submit 4건 = 세션별 등록 1 + Turnstile 통과 1 + 확인 흐름 1 + 발송 실패 1.
   // 허니팟 요청은 저장되지 않으므로 집계에 포함되지 않는다.
+  // waitlist_confirm은 확인 흐름 테스트에서 1건만 기록된다.
   assert.deepEqual(metricRows, [
     { event_name: "interview_opt_in", count: 1 },
     { event_name: "survey_complete", count: 1 },
-    { event_name: "waitlist_submit", count: 2 },
+    { event_name: "waitlist_confirm", count: 1 },
+    { event_name: "waitlist_submit", count: 4 },
   ]);
 
   const remaining = await queryDatabase(

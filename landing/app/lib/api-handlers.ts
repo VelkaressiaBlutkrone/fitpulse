@@ -1,10 +1,16 @@
 import {
+  confirmWaitlistByToken,
+  countVerifiedWaitlist,
   deleteWaitlistBySession,
   runRetentionPurge,
   storeClientMetric,
   storeSurvey,
   storeWaitlist,
 } from "../../db/landing-storage";
+import {
+  sendConfirmationEmail,
+  type EmailConfig,
+} from "./email";
 import { parseMetricInput, parseSurveyInput, parseWaitlistInput } from "./input";
 import {
   statusForTurnstileFailure,
@@ -53,6 +59,7 @@ export async function handleWaitlistPost(
   request: Request,
   db: D1Database,
   turnstile: TurnstileConfig,
+  email: EmailConfig,
 ) {
   const body = await readJson(request);
   if (!body.ok) return body.response;
@@ -75,8 +82,64 @@ export async function handleWaitlistPost(
   }
 
   try {
-    await storeWaitlist(db, parsed.value, sessionToken);
+    const stored = await storeWaitlist(db, parsed.value, sessionToken);
+
+    // 발송 실패는 등록을 막지 않는다. 미확인으로 남고 14일 뒤 정리된다.
+    // 성공·실패 모두 같은 응답을 돌려 이메일 존재 여부를 드러내지 않는다.
+    if (stored.confirmationToken) {
+      const confirmationUrl = new URL(
+        `/api/waitlist/confirm?token=${encodeURIComponent(stored.confirmationToken)}`,
+        request.url,
+      ).toString();
+      await sendConfirmationEmail(
+        { to: parsed.value.email, confirmationUrl },
+        email,
+      );
+    }
+
     return acceptedResponse(request, sessionToken);
+  } catch {
+    return json({ error: "storage_unavailable" }, 503);
+  }
+}
+
+/**
+ * 확인 링크 처리.
+ *
+ * 결과와 무관하게 302로 토큰 없는 주소로 보낸다. 토큰이 최종 주소에 남으면
+ * 브라우저 이력과 Referer로 샌다. 실패 사유를 구분해 알리지 않아
+ * 이메일 존재 여부를 추론할 수 없게 한다.
+ */
+export async function handleWaitlistConfirm(request: Request, db: D1Database) {
+  const token = new URL(request.url).searchParams.get("token");
+
+  let status = "invalid";
+  if (token) {
+    try {
+      const result = await confirmWaitlistByToken(db, token);
+      if (result.confirmed) status = "confirmed";
+    } catch {
+      status = "unavailable";
+    }
+  }
+
+  const target = new URL(`/confirm?status=${status}`, request.url);
+  return new Response(null, {
+    status: 302,
+    headers: {
+      location: target.toString(),
+      "cache-control": "no-store",
+      // 확인 주소가 참조자로 새지 않게 한다.
+      "referrer-policy": "no-referrer",
+    },
+  });
+}
+
+/** 확인된 대기자 수만 돌려준다. 개별 식별자와 이메일은 포함하지 않는다. */
+export async function handleWaitlistSummary(db: D1Database) {
+  try {
+    const summary = await countVerifiedWaitlist(db);
+    return json({ verified: summary.verified }, 200);
   } catch {
     return json({ error: "storage_unavailable" }, 503);
   }
@@ -162,6 +225,7 @@ export function handleApiWrite(
   request: Request,
   db: D1Database,
   turnstile: TurnstileConfig,
+  email: EmailConfig,
 ) {
   const { pathname } = new URL(request.url);
   if (pathname === "/api/events" && request.method === "POST") {
@@ -171,7 +235,7 @@ export function handleApiWrite(
     return handleSurveyPost(request, db);
   }
   if (pathname === "/api/waitlist" && request.method === "POST") {
-    return handleWaitlistPost(request, db, turnstile);
+    return handleWaitlistPost(request, db, turnstile, email);
   }
   if (pathname === "/api/waitlist" && request.method === "DELETE") {
     return handleWaitlistDelete(request, db);
