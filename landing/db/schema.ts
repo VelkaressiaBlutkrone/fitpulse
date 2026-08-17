@@ -52,6 +52,14 @@ export const landingEvents = sqliteTable(
   ],
 );
 
+// 배포 플랫폼이 예약 작업을 지원하지 않으므로 정리 실행 시각을 남긴다.
+// 요청 시점 정리가 매 쓰기마다 반복되지 않게 하는 게이트로 쓴다.
+// TASK-0001 / WF-09 참조.
+export const maintenanceRuns = sqliteTable("maintenance_runs", {
+  name: text("name").primaryKey(),
+  lastRunAt: integer("last_run_at").notNull(),
+});
+
 export const requestRateLimits = sqliteTable(
   "request_rate_limits",
   {

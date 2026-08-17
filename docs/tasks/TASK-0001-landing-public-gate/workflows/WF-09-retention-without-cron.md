@@ -7,7 +7,7 @@
 | Workflow ID | WF-09 |
 | Parent Task | TASK-0001 |
 | Parent Step | STEP-02 |
-| Status | Draft |
+| Status | Review — 배포 후 관찰 2건 Not Run |
 | Owner | 개인사업자 본인 |
 | Created At | 2026-08-17 |
 | Updated At | 2026-08-17 |
@@ -69,9 +69,38 @@ WF-07 조사에서 확인했다.
 - 공개 판정 — WF-06
 - 자체 Cloudflare 배포로의 전환 — 별도 TASK
 
-## 구현 방안 후보
+## 채택한 방안 — 후보 C (A + B 병행)
 
-착수 시 하나를 선택하고 근거를 기록한다. 현재는 결정하지 않았다.
+2026-08-17 소유자 승인으로 **지연 정리와 외부 스케줄러를 함께** 구현했다.
+
+후보 A만으로는 **트래픽이 없을 때 삭제가 실행되지 않는다.** 개인정보 보존 기간은 방문자 유무와 무관하게 지켜져야 하므로 A 단독은 채택하지 않았다.
+
+기존 `scheduled` 핸들러와 `crons` 선언은 **제거하지 않았다.** 플랫폼이 지원하면 그대로 동작하고, 아니면 아래 두 경로가 담당한다. 셋 중 하나라도 동작하면 보존 기간이 지켜진다.
+
+### 구현 결과
+
+| 경로 | 트리거 | 게이트 | 한계 |
+|---|---|---|---|
+| 1. 예약 작업 | 플랫폼 cron | 없음 | **지원 여부 미확인** |
+| 2. 요청 시점 정리 | 쓰기 요청 후 `ctx.waitUntil()` | 마지막 실행 후 6시간 | **트래픽 없으면 미실행** |
+| 3. 외부 스케줄러 | GitHub Actions 일 1회 | 없음 (`force`) | 공개 전에는 호출 불가 |
+
+변경 파일
+
+- `landing/db/schema.ts` — `maintenance_runs` 테이블 추가 (이름, 마지막 실행 시각)
+- `landing/drizzle/0002_fine_excalibur.sql` — 신규 마이그레이션
+- `landing/db/landing-storage.ts` — `runRetentionPurge()`. 게이트를 통과하거나 강제 실행이면 기존 `purgeExpiredData`를 호출하고 시각을 기록한다
+- `landing/app/lib/api-handlers.ts` — `handleMaintenancePurge()`. **토큰 미설정 시 모든 요청을 401로 거부**한다
+- `landing/worker/index.ts` — 정리 경로 라우팅, 쓰기 요청 후 지연 정리
+- `.github/workflows/retention-purge.yml` — 매일 03:20 UTC 호출
+
+### 남은 한계 — WF-04에서 안내에 반영해야 함
+
+경로 1의 지원 여부가 미확인이고, 경로 3은 공개 후에만 동작하며, 경로 2는 트래픽에 의존한다. **공개 직후 트래픽이 없고 시크릿이 미설정이면 어느 경로도 실행되지 않는다.**
+
+## 최초 검토한 방안 후보
+
+아래는 채택 전 비교한 내용이다.
 
 ### 후보 A — 요청 시점 지연 정리 (lazy cleanup)
 
@@ -136,12 +165,18 @@ GitHub Actions 등 저장소 밖 스케줄러가 인증된 정리 엔드포인�
 
 | Type | Command or Method | Expected | Actual | Status |
 |---|---|---|---|---|
-| Manual | 배포 후 cron 실행 여부 관찰 | 실행 여부 확정 | 미실행 | Not Run |
-| Test | `cd landing && npm test` | 신규·기존 테스트 통과 | 미실행 | Not Run |
-| Test | 대체 경로 실행 후 만료 행 삭제 검산 | 만료 0건, 미만료 유지 | 미실행 | Not Run |
-| Manual | 정리 엔드포인트 무인증 호출 거부 (후보 B 채택 시) | 거부 | 미실행 | Not Run |
-| Lint | `cd landing && npm run lint` | 오류 0 | 미실행 | Not Run |
-| Manual | 실제 배포본에서 만료 데이터가 지워지는 것 확인 | 삭제 확인 | 미실행 | Not Run |
+| Test | `cd landing && npm test` | 신규·기존 테스트 통과 | **15개 전부 통과** (기존 12 + 신규 3) | Passed |
+| Test | 토큰 없이 정리 호출 | 401 `unauthorized` | 통과 | Passed |
+| Test | 틀린 토큰으로 정리 호출 | 401 `unauthorized` | 통과 | Passed |
+| Test | 토큰을 질의 문자열로 전달 | 401 — 헤더만 인정 | 통과 | Passed |
+| Test | 유효 토큰으로 정리 호출 후 만료 행 검산 | 202, 만료 대기자·이벤트 0건 | 통과 | Passed |
+| Test | 정리 실행 시각이 `maintenance_runs`에 기록됨 | 1행, `last_run_at` 양수 | 통과 | Passed |
+| Lint | `cd landing && npm run lint` | 오류 0 | 오류 0 | Passed |
+| Audit | `npm audit --omit=dev --audit-level=high` | high 이상 0 | `found 0 vulnerabilities` | Passed |
+| Build | `npm run db:generate` | 신규 마이그레이션만 추가 | `0002_fine_excalibur.sql` 생성, 기존 파일 변경 0 | Passed |
+| Security | `git diff`에서 토큰 문자열 검색 | 0건 | 0건 | Passed |
+| Manual | **배포 후 플랫폼 cron 실행 여부 관찰** | 실행 여부 확정 | 미실행 | **Not Run — 공개 후 관찰** |
+| Manual | **실제 배포본에서 만료 데이터 삭제 확인** | 삭제 확인 | 미실행 | **Not Run — 공개 후 확인** |
 
 ## Done When
 
@@ -160,3 +195,4 @@ GitHub Actions 등 저장소 밖 스케줄러가 인증된 정리 엔드포인�
 | Date | Status | Commit | PR | Description |
 |---|---|---|---|---|
 | 2026-08-17 | Draft | - | - | Workflow 생성. WF-07 조사에서 배포 플랫폼의 cron 미지원이 확인되어 신설 |
+| 2026-08-17 | Review | - | - | 후보 C(지연 정리 + 외부 스케줄러) 채택·구현. `maintenance_runs` 테이블과 마이그레이션 추가, 인증된 정리 엔드포인트, GitHub Actions 스케줄러 작성. `npm test` 15개 통과. 배포 후 관찰 2건은 Not Run |

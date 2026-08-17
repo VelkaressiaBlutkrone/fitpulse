@@ -9,6 +9,44 @@ function isoBefore(now: Date, days: number) {
   return new Date(now.getTime() - days * DAY_MS).toISOString();
 }
 
+const RETENTION_PURGE_NAME = "retention_purge";
+// 요청 시점 정리가 매 쓰기마다 돌지 않도록 두는 최소 간격이다.
+const PURGE_MIN_INTERVAL_MS = 6 * 60 * 60 * 1000;
+
+/**
+ * 정리를 실행하고 실행 시각을 기록한다.
+ *
+ * 배포 플랫폼이 예약 작업을 지원하지 않으므로 두 경로가 이 함수를 부른다.
+ * 인증된 외부 스케줄러는 `force: true`로 즉시 실행하고, 요청 시점 정리는
+ * 최소 간격이 지났을 때만 실행한다. TASK-0001 / WF-09 참조.
+ *
+ * 실행했으면 true, 간격이 남아 건너뛰었으면 false를 반환한다.
+ */
+export async function runRetentionPurge(
+  db: D1Database,
+  options: { force?: boolean; now?: Date } = {},
+) {
+  const now = options.now ?? new Date();
+  const nowSeconds = Math.floor(now.getTime() / 1000);
+
+  if (!options.force) {
+    const previous = await db
+      .prepare("SELECT last_run_at FROM maintenance_runs WHERE name = ?")
+      .bind(RETENTION_PURGE_NAME)
+      .first<{ last_run_at: number }>();
+    const elapsedMs = previous ? (nowSeconds - previous.last_run_at) * 1000 : Infinity;
+    if (elapsedMs < PURGE_MIN_INTERVAL_MS) return false;
+  }
+
+  await purgeExpiredData(db, now);
+  await db
+    .prepare(`INSERT INTO maintenance_runs (name, last_run_at) VALUES (?, ?)
+      ON CONFLICT(name) DO UPDATE SET last_run_at = excluded.last_run_at`)
+    .bind(RETENTION_PURGE_NAME, nowSeconds)
+    .run();
+  return true;
+}
+
 export async function purgeExpiredData(db: D1Database, now = new Date()) {
   const pendingCutoff = isoBefore(now, PENDING_RETENTION_DAYS);
   const dataCutoff = isoBefore(now, DATA_RETENTION_DAYS);
