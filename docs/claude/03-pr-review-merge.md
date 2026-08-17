@@ -7,14 +7,14 @@
 | PR 종류 | Head | Base |
 |---|---|---|
 | Workflow PR | `workflow/TASK-*-WF-*` | 해당 `task/TASK-*` |
-| 단순 Task PR | `task/TASK-*` | `dev` |
-| 복합 Task PR | `task/TASK-*` | `dev` |
-| Release PR | `dev` 또는 `release/*` | `main` |
+| 단순 Task PR | `task/TASK-*` | `develop` |
+| 복합 Task PR | `task/TASK-*` | `develop` |
+| Release PR | `develop` 또는 `release/*` | `main` |
 | Hotfix PR | `hotfix/*` | `main` |
 
 금지:
 
-- Workflow PR을 `dev` 또는 `main`에 생성
+- Workflow PR을 `develop` 또는 `main`에 생성
 - Task PR을 `main`에 생성
 - 일반 기능 Branch에서 `main`으로 직접 PR 생성
 
@@ -147,7 +147,7 @@ Task PR:
 
 ```bash
 gh pr create \
-  --base dev \
+  --base develop \
   --head task/TASK-0123-reservation-duplicate-check \
   --title "feat(reservation): complete duplicate booking prevention" \
   --body-file .github/TASK_PULL_REQUEST_BODY.md
@@ -319,7 +319,7 @@ feat(reservation): complete duplicate booking prevention (#223)
 Target:
 
 ```text
-task/* → dev
+task/* → develop
 ```
 
 허용된 경우 명령:
@@ -368,8 +368,8 @@ Task Branch에 직접 수정하지 않는다.
 
 ```bash
 git fetch origin --prune
-git switch dev
-git pull --ff-only origin dev
+git switch develop
+git pull --ff-only origin develop
 git log -5 --oneline
 ```
 
@@ -378,6 +378,6 @@ git log -5 --oneline
 - Task Squash Commit 존재
 - Issue가 의도대로 종료
 - Task Branch 삭제 여부
-- 다음 TASK가 최신 `dev`에서 시작 가능
+- 다음 TASK가 최신 `develop`에서 시작 가능
 
 이미 병합된 Task Branch를 추가 수정에 재사용하지 않는다.

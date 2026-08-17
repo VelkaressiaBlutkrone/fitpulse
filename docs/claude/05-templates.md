@@ -21,7 +21,7 @@
 | Created At | {{YYYY-MM-DD}} |
 | Updated At | {{YYYY-MM-DD}} |
 | Related Issue | {{#번호 또는 N/A}} |
-| Base Branch | dev |
+| Base Branch | develop |
 | Task Branch | task/{{TASK-ID}}-{{slug}} |
 | Merge Authority | Human-only |
 | Decision References | {{DECISIONS / ADR}} |
@@ -340,7 +340,7 @@ Refs {{#Issue}}
 - Related Issue: {{#번호}}
 - Task Document: `{{TASK 문서 경로}}`
 - Head: task/{{TASK-ID}}-{{slug}}
-- Base: dev
+- Base: develop
 
 ## Goal
 

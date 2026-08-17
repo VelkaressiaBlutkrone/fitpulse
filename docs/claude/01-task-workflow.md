@@ -287,7 +287,7 @@ Scope 변경 시 순서:
 - Workflow 완료 후 발견된 통합 문제
 - 현재 TASK와 무관한 결함
 
-이미 `dev`에 병합된 TASK Branch를 다시 사용하지 않는다. 추가 변경은 새 TASK로 시작한다.
+이미 `develop`에 병합된 TASK Branch를 다시 사용하지 않는다. 추가 변경은 새 TASK로 시작한다.
 
 ## 12. 완료 조건
 
