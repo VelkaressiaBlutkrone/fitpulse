@@ -35,6 +35,7 @@
 | 2026-08-17 | Workflow | WF-02 | Review | workflow/TASK-0001-WF-02-abuse-defense | 69afbdc | #2 | `npm test` 12개 Passed, lint Passed | WF-08 병합분을 WF-02에 반영. HISTORY 표 행 충돌을 양쪽 보존으로 해결 |
 | 2026-08-17 | Workflow | WF-02 | Done | workflow/TASK-0001-WF-02-abuse-defense | 06d76b0 | #2 | Landing CI Passed (1m1s) | PR #2 squash 병합. `landing/app/lib/turnstile.ts` 등 산출물 반영 확인 |
 | 2026-08-17 | Task | TASK-0001 | In Progress | task/TASK-0001-landing-public-gate | - | - | N/A — 문서 변경 | WF-01·WF-02·WF-08 병합 완료를 Workflow Index에 반영. 남은 필수 Workflow는 WF-03·WF-04·WF-05·WF-06·WF-07 |
+| 2026-08-17 | Workflow | WF-07 | Done | workflow/TASK-0001-WF-07-d1-provisioning | 93a7557 | #4 | 확인 5건 Passed, 원문 대조 3건 Not Run | PR #4 squash 병합. 플랫폼 데이터 처리 사실 기록, D1 위치 결정과 SES 국외이전 회피 근거 철회 |
 
 ## 기록해야 할 사건과 현재 상태
 
