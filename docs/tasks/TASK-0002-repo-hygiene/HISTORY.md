@@ -5,6 +5,8 @@
 | 2026-08-17 | Task | TASK-0002 | In Progress | task/TASK-0002-repo-hygiene | - | - | 문서 검토 | TASK 생성. TASK-0001에서 기록한 두 결함을 분리해 착수 |
 | 2026-08-17 | Workflow | WF-01 | In Progress | task/TASK-0002-repo-hygiene | - | - | Not Run | 표기 정정과 무시 목록 정비 시작 |
 | 2026-08-17 | Workflow | WF-01 | Review | task/TASK-0002-repo-hygiene | - | - | 검증 8건 Passed | 표기 27곳 정정, 루트 `.gitignore` 신설 |
+| 2026-08-17 | Workflow | WF-01 | Done | task/TASK-0002-repo-hygiene | 1ff671f | #10 | 검증 8건 Passed | PR #10 squash 병합. develop에 반영 확인 |
+| 2026-08-17 | Task | TASK-0002 | Done | task/TASK-0002-repo-hygiene | 1ff671f | #10 | AC-01~AC-06 Passed | TASK 완료. Landing CI는 경로 미해당으로 Not Run |
 
 ## 2026-08-17 — 작업 경위
 

@@ -270,6 +270,25 @@ test("renders the secured mobile-first demand validation landing", async () => {
   assert.match(html, /type="checkbox"/);
   assert.match(html, /개인정보 수집·이용/);
   assert.match(html, /개발 예정 화면/);
+
+  // 확인 단계를 제출 전에 알린다. 알리지 않으면 등록 후 이탈이 늘어난다.
+  assert.match(html, /신청은 두 단계입니다/);
+  assert.match(html, /메일의 링크를 눌러야 신청이 완료됩니다/);
+  assert.match(html, /확인된 주소만 대기자로 집계/);
+
+  // FAQ가 개인정보 안내와 같은 사실을 말한다.
+  assert.match(html, /저장 국가를 특정해 알려드릴 수 없습니다/);
+  assert.match(html, /최대 30일 남을 수 있고/);
+
+  // 랜딩이 개인정보 안내보다 강한 삭제 약속을 하지 않는다.
+  // 배포 환경이 예약 작업을 지원하지 않아 만료 삭제가 지연될 수 있으므로
+  // 안내(app/privacy/page.tsx)는 "삭제 대상이 됩니다"로 유보한다. 랜딩도 같아야 한다.
+  assert.match(html, /확인하지 않은 신청은 같은 기간이 지나면 삭제 대상이 됩니다/);
+  assert.doesNotMatch(html, /확인하지 않은 신청은 같은 기간이 지나면 삭제됩니다/);
+
+  // 아직 동작하지 않는 기능을 이미 있는 것처럼 쓰지 않는다.
+  assert.match(html, /보여줄 계획입니다/);
+  assert.doesNotMatch(html, /지금 바로 추천받|추천을 받아보세요|자동으로 조절해 드립니다/);
   assert.match(html, /https:\/\/fitpulse-validation\.velkaressia\.chatgpt\.site\/fitpulse-social-card\.png/);
   assert.doesNotMatch(html, /의학적으로 안전|부상을 예방|회복을 보장/);
 });
