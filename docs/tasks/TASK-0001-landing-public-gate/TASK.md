@@ -101,6 +101,37 @@
 - [ ] AC-11: 공개 GO 또는 NO-GO 결론이 AC-10의 판정 결과를 근거로 `docs/decisions/`에 기록되어 있다.
 - [ ] AC-12: `waitlist_submit / landing_view`와 보조 지표 5종(CTA 클릭률, 선택 설문 완료율, 인터뷰 안내 수신 선택률, 채널별 획득비용, WF-03이 추가한 확인 완료율 `waitlist_confirm / waitlist_submit`)을 산출하는 질의가 문서화되어 있고, 같은 입력에 같은 결과를 내는 것이 확인되었다.
 
+## 실행 우선순위 재조정 (2026-08-17)
+
+소유자 지시로 **배포·공개 관련 작업을 전부 뒤로 미루고, 로컬 개발을 우선**한다.
+
+TASK의 Goal과 Scope 자체는 바꾸지 않는다. 공개 게이트 해소는 여전히 이 TASK의 목표이며, **실행 순서만 조정**한다. 공개 판정(WF-06)이 나기 전까지 랜딩은 소유자 전용 상태를 유지한다.
+
+### 우선 진행
+
+| Workflow | 이유 |
+|---|---|
+| WF-03 이메일 확인 흐름 | 발송 어댑터를 대체 구현으로 주입해 **로컬에서 완결 가능**하다. 실제 SES 호출 검증만 뒤로 미룬다 |
+| WF-04 개인정보 안내·런북 정합화 | 문서 정합화는 로컬에서 가능하다. WF-03 결과가 입력이므로 그 뒤에 진행한다 |
+
+### 보류
+
+| Workflow / 작업 | 보류 사유 |
+|---|---|
+| WF-05 비용 상한·중단 조건 | 공개 후 트래픽을 전제한다. 전제 정정은 이미 병합했고 나머지는 공개 시점에 정한다 |
+| WF-06 공개 판정과 기준선 계측 | 공개 자체가 대상이다 |
+| Turnstile 운영 키 발급 | 공개 도메인 확정이 선행이다. 로컬은 Cloudflare 공개 테스트 키로 검증한다 |
+| GitHub 시크릿 등록 (`LANDING_BASE_URL`, `MAINTENANCE_TOKEN`) | 배포 주소가 있어야 의미가 있다 |
+| Worker 시크릿 주입 경로 확인 | 배포 시점 과제. `docs/runbooks/fitpulse-landing-secrets-and-keys.md`에 절차와 미확인 항목을 남겼다 |
+| AWS 프로덕션 액세스 승인 | WF-03의 **실제 발송 검증**에만 필요하다. 로컬 구현은 이것 없이 진행한다 |
+| 원문 대조 3건 (OpenAI 문서) | 공개 판정 입력이다 |
+
+### 보류가 바꾸지 않는 것
+
+- 보류한 항목은 **취소가 아니다.** 공개 판정 전에 모두 해소해야 한다
+- 로컬 개발 중에도 `ADR-20260814-002`의 제외 범위(계정·인증·결제·건강데이터·개인화)는 그대로 적용된다
+- fail-closed 설계를 완화하지 않는다. 시크릿이 없으면 로컬에서도 거부되는 동작을 유지한다
+
 ## Merge Authority 변경 기록
 
 2026-08-17 소유자 지시로 `Human-only`에서 **`Auto-after-checks`**로 변경했다.
@@ -155,9 +186,9 @@
 | STEP-02 | WF-02 | 공개 트래픽 남용 방어 서버 검증 | Done | workflow/TASK-0001-WF-02-abuse-defense | #2 Merged | WF-01, WF-08 |
 | STEP-02 | WF-09 | 예약 작업 없이 보존 기간 준수 | Done — 배포 후 관찰 2건 Not Run | workflow/TASK-0001-WF-09-retention-without-cron | #6 Merged | WF-07 |
 | STEP-02 | WF-03 | 이메일 확인 흐름 | Draft | workflow/TASK-0001-WF-03-email-confirmation | - | WF-01, WF-07 |
-| STEP-02 | WF-05 | 비용 상한·중단 조건과 운영 계측 | In Progress — 전제 정정만 완료 | workflow/TASK-0001-WF-05-cost-cap-observability | - | WF-01, WF-07 |
+| STEP-02 | WF-05 | 비용 상한·중단 조건과 운영 계측 | Blocked — 배포 보류 (전제 정정만 완료) | workflow/TASK-0001-WF-05-cost-cap-observability | - | WF-01, WF-07 |
 | STEP-03 | WF-04 | 개인정보 안내·삭제 런북 정합화 | Draft | workflow/TASK-0001-WF-04-privacy-runbook-alignment | - | WF-02, WF-03, WF-07, WF-09 |
-| STEP-03 | WF-06 | 공개 판정과 기준선 계측 | Draft | workflow/TASK-0001-WF-06-public-decision-baseline | - | WF-02, WF-03, WF-04, WF-05, WF-07 |
+| STEP-03 | WF-06 | 공개 판정과 기준선 계측 | Blocked — 배포 보류 | workflow/TASK-0001-WF-06-public-decision-baseline | - | WF-02, WF-03, WF-04, WF-05, WF-07 |
 
 WF-08은 WF-02의 PR에서 Landing CI가 처음 실행되며 드러난 기존 결함(`package-lock.json` optional 의존성 누락)을 분리한 것이다. `docs/claude/01-task-workflow.md` §11의 "현재 TASK와 무관한 결함" 기준을 적용했다. WF-02는 CI 통과를 위해 WF-08 병합 이후로 의존이 생겼다.
 
