@@ -2,6 +2,7 @@ import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } fr
 import handler from "vinext/server/app-router-entry";
 import { consumeRateLimit, purgeExpiredData } from "../db/landing-storage";
 import { handleApiWrite } from "../app/lib/api-handlers";
+import { turnstileConfigFromEnv } from "../app/lib/turnstile";
 import {
   createSessionToken,
   readCookie,
@@ -20,7 +21,13 @@ type ImagesBinding = {
 type WorkerEnv = Env & {
   ASSETS: Fetcher;
   IMAGES: ImagesBinding;
+  // Turnstile 시크릿은 wrangler secret으로 주입한다. 설정 파일에 값을 두지 않는다.
+  TURNSTILE_SECRET_KEY?: string;
+  // 기본값은 Cloudflare 실제 엔드포인트다. 테스트에서만 로컬 스텁으로 덮어쓴다.
+  TURNSTILE_VERIFY_URL?: string;
 };
+
+const TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
 
 const API_LIMITS: Record<string, number> = {
   "/api/events": 30,
@@ -57,7 +64,9 @@ function withSecurityHeaders(request: Request, response: Response) {
   const headers = new Headers(response.headers);
   headers.set(
     "content-security-policy",
-    "default-src 'self'; base-uri 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'none'; img-src 'self' data:; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'",
+    // Turnstile 위젯은 challenges.cloudflare.com에서 스크립트를 받아 iframe으로 렌더링한다.
+    // 해당 출처만 script-src와 frame-src에 추가하고 나머지 지시문은 좁게 유지한다.
+    `default-src 'self'; base-uri 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'none'; frame-src ${TURNSTILE_ORIGIN}; img-src 'self' data:; object-src 'none'; script-src 'self' 'unsafe-inline' ${TURNSTILE_ORIGIN}; style-src 'self' 'unsafe-inline'`,
   );
   headers.set("cross-origin-opener-policy", "same-origin");
   headers.set("cross-origin-resource-policy", "same-origin");
@@ -134,7 +143,7 @@ async function handleApplicationRequest(
     return jsonError("storage_unavailable", 503);
   }
 
-  const response = await handleApiWrite(request, env.DB);
+  const response = await handleApiWrite(request, env.DB, turnstileConfigFromEnv(env));
   if (existingVisitorToken) return response;
 
   const headers = new Headers(response.headers);

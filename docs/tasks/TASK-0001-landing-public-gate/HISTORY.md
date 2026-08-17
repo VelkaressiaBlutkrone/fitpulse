@@ -22,6 +22,9 @@
 | 2026-08-17 | Workflow | WF-01 | Done | workflow/TASK-0001-WF-01-provider-selection | e6c64bc | - | 문서 대조 Passed | 소유자 선택으로 ADR-20260817-003 ACCEPTED. Turnstile Free, Amazon SES `ap-northeast-2`, D1 위치 `apac` 확정 |
 | 2026-08-17 | Workflow | WF-07 | Draft | workflow/TASK-0001-WF-07-d1-provisioning | - | - | Not Run | 프로덕션 D1 프로비저닝 Workflow 신설. 최초 계획에 없었으며 WF-01 조사 결과로 추가 |
 | 2026-08-17 | Task | TASK-0001 | In Progress | task/TASK-0001-landing-public-gate | - | - | Not Run | Scope 변경: WF-07 추가, AC-13~AC-15 추가, WF-03·WF-05·WF-04·WF-06 의존에 WF-07 반영 |
+| 2026-08-17 | Workflow | WF-01 | Done | workflow/TASK-0001-WF-01-provider-selection | 08bd8f4 | #1 | 문서 대조 Passed | PR #1 squash 병합. Task Branch에 반영 확인 |
+| 2026-08-17 | Workflow | WF-02 | In Progress | workflow/TASK-0001-WF-02-abuse-defense | - | - | Not Run | 설계 결정 3건 확정 후 실패 테스트 선작성. `turnstileToken` 미지원으로 400 실패 확인 |
+| 2026-08-17 | Workflow | WF-02 | Review | workflow/TASK-0001-WF-02-abuse-defense | - | - | `npm test` 12개 Passed, lint Passed, audit Passed | Turnstile 서버 검증·클라이언트 위젯·CSP 구현. 실제 키가 필요한 수동 검증 3건은 Not Run |
 
 ## 기록해야 할 사건과 현재 상태
 

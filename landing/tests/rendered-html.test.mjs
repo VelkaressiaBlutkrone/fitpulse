@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
@@ -14,11 +15,64 @@ const wranglerCli = fileURLToPath(new URL("../node_modules/wrangler/bin/wrangler
 const wranglerConfig = fileURLToPath(new URL("../dist/server/wrangler.json", import.meta.url));
 const port = 43100 + (process.pid % 400);
 const origin = `http://127.0.0.1:${port}`;
+
+// Turnstile siteverify는 로컬 스텁으로 대체한다. WF-02 설계 결정 1에 따라
+// 검증 엔드포인트를 환경변수로 주입해 테스트가 외부 네트워크에 의존하지 않게 한다.
+const turnstileStubPort = port + 500;
+const turnstileVerifyUrl = `http://127.0.0.1:${turnstileStubPort}/siteverify`;
+const TEST_TURNSTILE_SECRET = "test-turnstile-secret";
+const VALID_TURNSTILE_TOKEN = "valid-turnstile-token";
+const EXPIRED_TURNSTILE_TOKEN = "expired-turnstile-token";
+
 let persistenceDirectory;
 let server;
 let serverOutput = "";
 let registeredEmail = "";
 let deduplicatedClientEventId = "";
+let turnstileStub;
+let turnstileStubCalls = [];
+
+function startTurnstileStub() {
+  turnstileStub = createServer((incoming, response) => {
+    let body = "";
+    incoming.on("data", (chunk) => { body += chunk; });
+    incoming.on("end", () => {
+      const params = new URLSearchParams(body);
+      const token = params.get("response");
+      turnstileStubCalls.push({ secret: params.get("secret"), token });
+
+      const success =
+        params.get("secret") === TEST_TURNSTILE_SECRET && token === VALID_TURNSTILE_TOKEN;
+      const errorCode =
+        token === EXPIRED_TURNSTILE_TOKEN ? "timeout-or-duplicate" : "invalid-input-response";
+
+      response.writeHead(200, { "content-type": "application/json" });
+      response.end(JSON.stringify(
+        success
+          ? { success: true, challenge_ts: new Date().toISOString(), hostname: "127.0.0.1" }
+          : { success: false, "error-codes": [errorCode] },
+      ));
+    });
+  });
+  return new Promise((resolve) => turnstileStub.listen(turnstileStubPort, "127.0.0.1", resolve));
+}
+
+function stopTurnstileStub() {
+  if (!turnstileStub) return Promise.resolve();
+  return new Promise((resolve) => turnstileStub.close(resolve));
+}
+
+function waitlistPayload(overrides = {}) {
+  return {
+    email: `test-${Date.now()}@example.com`,
+    consent: true,
+    consentVersion: "prevalidation-v2",
+    channelCode: "direct",
+    company: "",
+    turnstileToken: VALID_TURNSTILE_TOKEN,
+    ...overrides,
+  };
+}
 
 async function wrangler(...args) {
   return execFileAsync(process.execPath, [wranglerCli, ...args], {
@@ -43,6 +97,10 @@ async function startServer() {
     "--persist-to",
     persistenceDirectory,
     "--show-interactive-dev-session=false",
+    "--var",
+    `TURNSTILE_SECRET_KEY:${TEST_TURNSTILE_SECRET}`,
+    "--var",
+    `TURNSTILE_VERIFY_URL:${turnstileVerifyUrl}`,
     "--log-level",
     "warn",
   ], {
@@ -69,6 +127,7 @@ async function startServer() {
 }
 
 before(async () => {
+  await startTurnstileStub();
   persistenceDirectory = await mkdtemp(join(tmpdir(), "fitpulse-worker-test-"));
   await wrangler(
     "d1",
@@ -96,6 +155,7 @@ async function stopServer() {
 
 after(async () => {
   await stopServer();
+  await stopTurnstileStub();
   if (persistenceDirectory) {
     for (let attempt = 0; attempt < 5; attempt += 1) {
       try {
@@ -227,13 +287,7 @@ test("rejects invalid and cross-site write requests before persistence", async (
 test("keeps duplicate registration private and authorizes survey and deletion by session", async () => {
   const email = `test-${Date.now()}@example.com`;
   registeredEmail = email;
-  const payload = {
-    email,
-    consent: true,
-    consentVersion: "prevalidation-v2",
-    channelCode: "direct",
-    company: "",
-  };
+  const payload = waitlistPayload({ email });
   const first = await request("/api/waitlist", {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -277,6 +331,85 @@ test("keeps duplicate registration private and authorizes survey and deletion by
   assert.equal(deletion.status, 202);
   assert.deepEqual(await deletion.json(), { accepted: true });
 
+});
+
+test("rejects waitlist registration without a server-verified abuse defense token", async () => {
+  turnstileStubCalls = [];
+
+  const missingToken = await request("/api/waitlist", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(waitlistPayload({ turnstileToken: undefined })),
+  });
+  assert.equal(missingToken.status, 403, `${await missingToken.clone().text()}\n${serverOutput}`);
+  const missingCookie = cookieFrom(missingToken, "fitpulse_visitor");
+  const missingBody = await missingToken.json();
+  assert.deepEqual(missingBody, { error: "turnstile_required" });
+  assert.equal(
+    turnstileStubCalls.length,
+    0,
+    "토큰이 없으면 siteverify를 호출하지 않아야 한다",
+  );
+
+  const forgedToken = await request("/api/waitlist", {
+    method: "POST",
+    headers: { "content-type": "application/json", cookie: missingCookie },
+    body: JSON.stringify(waitlistPayload({ turnstileToken: "forged-token" })),
+  });
+  assert.equal(forgedToken.status, 403, `${await forgedToken.clone().text()}\n${serverOutput}`);
+  assert.deepEqual(await forgedToken.json(), { error: "turnstile_failed" });
+
+  const expiredToken = await request("/api/waitlist", {
+    method: "POST",
+    headers: { "content-type": "application/json", cookie: missingCookie },
+    body: JSON.stringify(waitlistPayload({ turnstileToken: EXPIRED_TURNSTILE_TOKEN })),
+  });
+  assert.equal(expiredToken.status, 403);
+  const expiredBody = await expiredToken.json();
+  assert.deepEqual(expiredBody, { error: "turnstile_failed" });
+
+  // Cloudflare가 반환한 error-codes 원문을 그대로 노출하지 않는다.
+  assert.doesNotMatch(JSON.stringify(expiredBody), /timeout-or-duplicate|error-codes/);
+
+  // 서버가 실제로 시크릿을 실어 siteverify를 호출했는지 확인한다.
+  assert.equal(turnstileStubCalls.length, 2);
+  assert.ok(turnstileStubCalls.every((call) => call.secret === TEST_TURNSTILE_SECRET));
+  assert.deepEqual(
+    turnstileStubCalls.map((call) => call.token),
+    ["forged-token", EXPIRED_TURNSTILE_TOKEN],
+  );
+});
+
+test("accepts registration when the abuse defense token verifies server-side", async () => {
+  turnstileStubCalls = [];
+  const accepted = await request("/api/waitlist", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(waitlistPayload({ email: `verified-${Date.now()}@example.com` })),
+  });
+  assert.equal(accepted.status, 202, `${await accepted.clone().text()}\n${serverOutput}`);
+  assert.deepEqual(await accepted.json(), { accepted: true });
+  assert.equal(turnstileStubCalls.length, 1);
+  assert.equal(turnstileStubCalls[0].token, VALID_TURNSTILE_TOKEN);
+});
+
+test("keeps the honeypot silent without spending a siteverify call", async () => {
+  turnstileStubCalls = [];
+  const honeypot = await request("/api/waitlist", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(waitlistPayload({
+      email: `bot-${Date.now()}@example.com`,
+      company: "Acme Corp",
+    })),
+  });
+  assert.equal(honeypot.status, 202);
+  assert.deepEqual(await honeypot.json(), { accepted: true });
+  assert.equal(
+    turnstileStubCalls.length,
+    0,
+    "허니팟에 걸린 요청은 siteverify를 호출하지 않아야 한다",
+  );
 });
 
 test("deduplicates client metrics and rejects client-authored conversions or PII", async () => {
@@ -374,6 +507,30 @@ test("uses native form validation and exposes accessible server errors", async (
   assert.match(form, /consentVersion:\s*"prevalidation-v2"/);
   assert.doesNotMatch(form, /trackEvent\([^\n]*email/i);
   assert.doesNotMatch(form, /URLSearchParams\([^\n]*email/i);
+
+  // 폼이 서버가 검증하는 토큰을 실제로 전달하는지 확인한다.
+  assert.match(form, /turnstileToken:\s*String\(form\.get\("cf-turnstile-response"\)/);
+  assert.match(form, /className="cf-turnstile"/);
+  assert.match(form, /data-sitekey=\{turnstileSiteKey\}/);
+  // 403(사람 확인 실패)은 일반 오류와 구분해 안내하고 위젯을 초기화한다.
+  assert.match(form, /response\?\.status === 403/);
+  assert.match(form, /window\.turnstile\?\.reset\(\)/);
+  // 시크릿 키가 클라이언트 번들에 들어가지 않는다.
+  assert.doesNotMatch(form, /TURNSTILE_SECRET/);
+});
+
+test("scopes the abuse defense origin in the content security policy", async () => {
+  const response = await request();
+  const policy = response.headers.get("content-security-policy") ?? "";
+  await response.arrayBuffer();
+
+  assert.match(policy, /script-src [^;]*https:\/\/challenges\.cloudflare\.com/);
+  assert.match(policy, /frame-src https:\/\/challenges\.cloudflare\.com/);
+  // 방어 출처를 허용해도 나머지 지시문은 좁게 유지한다.
+  assert.match(policy, /default-src 'self'/);
+  assert.match(policy, /connect-src 'self'/);
+  assert.match(policy, /object-src 'none'/);
+  assert.match(policy, /frame-ancestors 'none'/);
 });
 
 test("persists only authoritative, deduplicated rows and enforces the survey foreign key", async () => {
@@ -382,10 +539,12 @@ test("persists only authoritative, deduplicated rows and enforces the survey for
   const metricRows = await queryDatabase(
     "SELECT event_name, count(*) AS count FROM landing_events WHERE event_name IN ('waitlist_submit','survey_complete','interview_opt_in') GROUP BY event_name ORDER BY event_name",
   );
+  // waitlist_submit은 세션별 등록 테스트 1건 + Turnstile 통과 테스트 1건이다.
+  // 허니팟 요청은 저장되지 않으므로 집계에 포함되지 않는다.
   assert.deepEqual(metricRows, [
     { event_name: "interview_opt_in", count: 1 },
     { event_name: "survey_complete", count: 1 },
-    { event_name: "waitlist_submit", count: 1 },
+    { event_name: "waitlist_submit", count: 2 },
   ]);
 
   const remaining = await queryDatabase(
