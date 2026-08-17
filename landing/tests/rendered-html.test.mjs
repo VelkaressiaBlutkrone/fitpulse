@@ -559,6 +559,23 @@ test("persists only authoritative, deduplicated rows and enforces the survey for
   );
   assert.deepEqual(clientRows, [{ count: 1 }]);
 
+  // 남용 방어 토큰이 어떤 저장 행에도 남지 않아야 한다.
+  const tokenLeak = await queryDatabase(`SELECT
+    (SELECT count(*) FROM landing_events
+      WHERE properties_json LIKE '%turnstile%'
+         OR properties_json LIKE '%${VALID_TURNSTILE_TOKEN}%'
+         OR event_key LIKE '%${VALID_TURNSTILE_TOKEN}%') AS event_leaks,
+    (SELECT count(*) FROM waitlist_entries
+      WHERE management_token_hash LIKE '%${VALID_TURNSTILE_TOKEN}%'
+         OR channel_code LIKE '%${VALID_TURNSTILE_TOKEN}%') AS waitlist_leaks`);
+  assert.deepEqual(tokenLeak, [{ event_leaks: 0, waitlist_leaks: 0 }]);
+
+  // 허니팟에 걸린 요청은 저장되지 않는다.
+  const honeypotRows = await queryDatabase(
+    "SELECT count(*) AS count FROM waitlist_entries WHERE email LIKE 'bot-%@example.com'",
+  );
+  assert.deepEqual(honeypotRows, [{ count: 0 }]);
+
   const foreignKeys = await queryDatabase("PRAGMA foreign_key_list('survey_responses')");
   assert.ok(foreignKeys.some((row) =>
     row.table === "waitlist_entries" && row.from === "waitlist_id" && row.on_delete === "CASCADE"
