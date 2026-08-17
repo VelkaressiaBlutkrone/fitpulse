@@ -14,6 +14,8 @@
 | 2026-08-17 | Workflow | WF-01 | In Progress | workflow/TASK-0001-WF-01-provider-selection | - | - | Not Run | 공급자·데이터 처리 사실 조사 시작 |
 | 2026-08-17 | Workflow | WF-01 | Blocked | workflow/TASK-0001-WF-01-provider-selection | - | - | 문서 대조 4건 Passed, 2건 Not Run | ADR-20260817-003 초안 작성. 소유자 확인 6건 미완으로 ACCEPTED 전환 불가 |
 | 2026-08-17 | Task | TASK-0001 | In Progress | task/TASK-0001-landing-public-gate | - | - | Not Run | WF-01 조사 결과로 Scope 변경: WF-04에 D1 Time Travel 잔존 기간 반영 추가, TASK Risks 2건 추가 |
+| 2026-08-17 | Workflow | WF-01 | Blocked | workflow/TASK-0001-WF-01-provider-selection | - | - | 문서 대조 Passed | 소유자 입력으로 Cloudflare 플랜 Workers Free 확정. 대안 2개(Amazon SES, Brevo) 조사했으나 데이터 저장 위치·무료 한도를 확인하지 못해 비교 미완 |
+| 2026-08-17 | Task | TASK-0001 | In Progress | task/TASK-0001-landing-public-gate | - | - | Not Run | Scope 변경: 쟁점 3(Free 플랜 D1 읽기 전용 전환)을 WF-05에 추가, TASK Risks 2건 추가 |
 
 ## 기록해야 할 사건과 현재 상태
 
