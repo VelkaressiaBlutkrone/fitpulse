@@ -15,7 +15,7 @@ Parent: TASK-0001 / WF-01
 | 대상 | 결정 | 근거 |
 |---|---|---|
 | 남용 방어 | **Cloudflare Turnstile Free 플랜** | 무료, 서버 측 `siteverify`, 공식 테스트 키로 자동 테스트 가능, 기존 Cloudflare 스택과 일치 |
-| 이메일 확인·발송 | **Amazon SES, 리전 `ap-northeast-2`(서울)** | 이메일 주소를 국내에서 처리해 개인정보 국외 이전을 피한다. 월 3,000건 기준 약 $0.48 |
+| 이메일 확인·발송 | **Amazon SES, 리전 `ap-northeast-2`(서울)** | 발송 경로의 수탁자를 국내에 두고 비용이 낮다. **단 "국외 이전을 피한다"는 최초 근거는 2026-08-17 철회됨** — 아래 참조 |
 | D1 데이터 위치 | ~~위치 힌트 `apac`~~ → **실행 불가. 2026-08-17 철회** | 아래 "D1 위치 결정 철회" 참조 |
 | Brevo | **후보에서 제외** | 무료 한도와 데이터 호스팅 위치를 확인하지 못함 |
 | Cloudflare Email Sending | **배제** | Beta이며 Workers Paid 전용. 이 계정은 Workers Free |
@@ -43,6 +43,19 @@ WF-07 착수 중 이 결정의 전제가 틀렸음이 드러나 **"D1 위치 힌
 **대체 조치**: 데이터 위치·백업·처리 주체 확인 대상을 우리 Cloudflare 계정에서 **배포 플랫폼**으로 옮긴다. WF-07을 "배포 플랫폼의 데이터 처리 사실 확인"으로 재정의했다.
 
 이로써 아래 "잔여 미확인 항목"의 **랜딩 호스팅 항목이 이 TASK에서 가장 중요한 미확인 항목**이 된다. 이메일이 저장되는 곳의 처리 주체와 국가를 모르면 개인정보 안내를 사실대로 쓸 수 없다.
+
+### SES 서울 선택 근거의 부분 철회 (2026-08-17)
+
+WF-07에서 배포 플랫폼의 데이터 처리 사실을 확인한 결과, 이 결정의 **핵심 근거 하나가 성립하지 않는다.**
+
+> "ChatGPT Sites does not support data residency or inference residency at launch, including deployed Sites, Site code, **D1/R2 data and file storage**, artifacts, and logs."
+> — [Data residency and inference residency for ChatGPT](https://help.openai.com/en/articles/9903489-data-residency-and-inference-residency-for-chatgpt) (검색 인용, 원문 미확인)
+
+**대기자 이메일의 원본은 플랫폼이 프로비저닝한 D1에 저장되고, 그 위치를 우리가 지정할 수 없다.** 따라서 발송 경로를 국내(SES 서울)로 만들어도 **국외 이전 고지는 어차피 필요하다.**
+
+**선택 자체는 유지한다.** 발송 수탁자를 국내에 두는 것, 단가가 1,000건당 $0.16로 낮은 것은 여전히 유효한 근거다. 다만 "국외 이전 고지를 피할 수 있다"는 근거는 삭제한다.
+
+상세 확인 결과는 `docs/verification/fitpulse-landing-platform-data-handling-20260817.md`에 있다.
 
 ### 선정에 따라 새로 생긴 선행 작업
 

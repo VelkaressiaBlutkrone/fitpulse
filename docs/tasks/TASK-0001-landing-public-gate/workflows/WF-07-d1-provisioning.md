@@ -7,7 +7,7 @@
 | Workflow ID | WF-07 |
 | Parent Task | TASK-0001 |
 | Parent Step | STEP-01 |
-| Status | In Progress |
+| Status | Review — 원문 대조 3건 Not Run |
 | Owner | 개인사업자 본인 |
 | Created At | 2026-08-17 |
 | Updated At | 2026-08-17 |
@@ -143,12 +143,15 @@ WF-01에서 `wrangler d1 info site-creator-d1`이 데이터베이스를 찾지 �
 |---|---|---|---|---|
 | Manual | 빌드 파이프라인 확인 (`vite.config.ts`, `sites-vite-plugin.ts`, `hosting.json`) | D1 프로비저닝 주체 특정 | OpenAI Sites 플랫폼이 프로비저닝함을 확인 | Passed |
 | Manual | `wrangler d1 list` | 우리 계정에 랜딩용 D1이 없음이 정상임을 확인 | `[]` — 잘못 생성한 DB 삭제 후 확인 | Passed |
-| Manual | 플랫폼의 데이터 저장 국가·리전 확인 | 출처와 함께 기록 | 미실행 | Not Run |
-| Manual | 플랫폼의 백업·복원 가능 기간 확인 | 출처와 함께 기록 | 미실행 | Not Run |
-| Manual | 처리 주체·수탁 관계 확인 | 출처와 함께 기록 | 미실행 | Not Run |
-| Manual | 접근 로그 보존 기간과 수집 항목 확인 | 출처와 함께 기록 | 미실행 | Not Run |
-| Manual | 삭제 요청 후 실제 소멸 시점 확인 | 출처와 함께 기록 | 미실행 | Not Run |
-| Document | `git diff --check` | 의도한 Markdown hard break 외 경고 없음 | 미실행 | Not Run |
+| Manual | 플랫폼의 데이터 저장 국가·리전 확인 | 출처와 함께 기록 | **레지던시 미지원 확인** — D1/R2 저장과 로그 포함. 위치 지정 불가 | Passed |
+| Manual | 처리 주체·수탁 관계 확인 | 출처와 함께 기록 | 소유자 Controller / OpenAI Processor, 재수탁자가 보안·안전 분류기 실행 | Passed |
+| Manual | Hosted Data 범위 확인 | 출처와 함께 기록 | 사용자 제공분 + 로그·사용·기기정보·쿠키 수집분 포함 | Passed |
+| Manual | 삭제 요청 후 실제 소멸 시점 확인 | 출처와 함께 기록 | 삭제 요청 후 **내부 최대 30일** 보존 | Passed |
+| Manual | 금지 데이터 제약 확인 | 출처와 함께 기록 | PHI·결제카드 처리 금지. 현재 설계와 충돌 없음 | Passed |
+| Manual | 인용문의 **원문 대조** | 공식 문서에서 직접 확인 | 미실행 — `help.openai.com`·`openai.com`이 HTTP 403 반환 | **Not Run — 접근 차단** |
+| Manual | 재수탁자 명단과 소재국 | 목록 확인 | 미실행 — 같은 사유 | **Not Run — 접근 차단** |
+| Manual | 플랫폼 접근 로그의 보존 기간 | Sites 기준 확인 | 미실행 — Compliance Logs 30일이 Sites 로그에 적용되는지 불명 | **Not Run** |
+| Document | `git diff --check` | 의도한 Markdown hard break 외 경고 없음 | 경고 0건 | Passed |
 
 ## Done When
 
@@ -168,3 +171,4 @@ WF-01에서 `wrangler d1 info site-creator-d1`이 데이터베이스를 찾지 �
 |---|---|---|---|---|
 | 2026-08-17 | Draft | - | - | Workflow 생성. WF-01에서 프로덕션 D1 부재가 확인되어 "D1 직접 생성"으로 정의 |
 | 2026-08-17 | In Progress | - | - | 착수 중 배포 구조를 확인해 전제 오류를 발견. 생성한 D1을 삭제하고 코드 변경을 되돌린 뒤, Workflow를 "배포 플랫폼의 데이터 처리 사실 확인"으로 재정의 |
+| 2026-08-17 | Review | - | - | 플랫폼 데이터 처리 사실 5건 확인. **레지던시 미지원**, 소유자 Controller / OpenAI Processor, Hosted Data에 로그·기기정보 포함, 삭제 후 30일 내부 보존, PHI·결제카드 금지. 이에 따라 ADR의 SES 서울 선택 근거 중 "국외 이전 회피"를 철회. 원문 대조 3건은 403으로 Not Run |
